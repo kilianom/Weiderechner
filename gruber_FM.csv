@@ -1,0 +1,8 @@
+FM,art,class,label,NEL,XP,NDF,ADF,NFC,Referenz
+GS1,Grundfutter,GS,Grassilage gut,6.36,155,429,274,278,Grassilage angewelkt 1.Sch Beginn Rispenschieben
+GS2,Grundfutter,GS,Grassilage mittel,6,163,425,279,263,Grassilage angewelkt 2.Sch Beginn Rispenschieben
+MS1,Grundfutter,MS,Maissilage gut,6.69,82,485,250,485,Maissilage Wachsreife mittlerer Körneranteil/Maissilage mittel
+MS2,Grundfutter,MS,Maissilage mittel,6.36,84,520,280,453,Maissilage Teigreife körnerarm/Maissilage gering
+KF_P,Kraftfutter,KF,Proteinkraftfutter,7.3,385,315,226,204,Rapsextraktionsschrot
+KF_E,Kraftfutter,KF,Energiekraftfutter,8.4,102,110,28,726,"Mais, Körner"
+KF_a,Kraftfutter,KF,ausgeglichenes Kraftfutter,7.5,182,250,144,434,MLF16/3
