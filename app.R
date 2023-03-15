@@ -4,7 +4,7 @@ library(shiny)
 library(shinyvalidate)
 theme_a<-bs_theme(
   version = 3,
-  bootswatch = "flatly")
+  bootswatch = "sandstone")
 
 gfm<-fread("FM.csv")
 #set thresholds for fibre
