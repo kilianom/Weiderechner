@@ -36,7 +36,7 @@ ui <-fluidPage(theme = theme_a,
                            
                 sidebarPanel(
                      shinyjs::useShinyjs(),
-                     shinybrowser::detect(),
+                    # shinybrowser::detect(),
                      
                      icon("cow","fa-2x"),
                      shinyBS::bsCollapse(
