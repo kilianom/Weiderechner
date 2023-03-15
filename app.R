@@ -3,8 +3,14 @@ library(ggplot2)
 library(shiny)
 library(shinydashboard)
 library(shinyvalidate)
+library(bslib)
+theme_a<-bs_theme(version = 5)
 
-gfm<-fread("gruber_FM.csv")
+gfm<-fread("FM.csv")
+#set thresholds for fibre
+t_NDF<-300
+t_ADF<-200
+t_NFC<-400
 
 GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
   br<-ifelse(br=="milchbetont",-1.667,-2.631)
@@ -15,14 +21,15 @@ GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
 }
 list.files("helper/")
 ######################ui#################################################################################
-ui <- dashboardPage(
+ui <-dashboardPage(
   dashboardHeader(title ="Weiderechner",
                   tags$li(class="dropdown",actionButton("help1","Information", onclick ="window.open('helper/Manual_Weiderechner.html', '_blank')",icon = icon("question"))),
                   titleWidth = "22%"),
-  dashboardSidebar(width = 500,
+  dashboardSidebar(width = 520,
                    h3("Eingaben"),
                    sidebarMenu(
                      shinyjs::useShinyjs(),
+                     shinybrowser::detect(),
                     
                       menuItem("Herde",icon = icon("cow"),
                               numericInput("ncow","Kuhanzahl",min = 1,max=2000,value = 90),
@@ -115,32 +122,35 @@ ui <- dashboardPage(
 
 ###################### Define server logic ################
 server <- function(input, output,session) {
+  
   ####helpers####
   shinyhelper::observe_helpers(help_dir = "helper")
   ####reactive values####
   rv<-reactiveValues(dt_ra=NULL,dt_input=NULL,dt_calc=NULL,dt_feed=NULL)
  ###validate inputs####
   iv<-InputValidator$new()#iniate validator
-  iv$add_rule("ncow",sv_between(1,2000,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("milk_y",sv_between(5,45,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("n_lac",sv_between(1,10,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("m_p",sv_between(2.8,6,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("n_lac",sv_between(1,10,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("dim",sv_between(5,330,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("lwt",sv_between(400,800,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("pqual",sv_between(5,7.5,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("preg",sv_between(5,15,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("postg",sv_between(3,8,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("mult",sv_between(120,300,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("konst",sv_between(-1000,1000,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
-  iv$add_rule("NEL",sv_between(4,9,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen.",allow_na = T))
-  iv$add_rule("XP",sv_between(50,600,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen.",allow_na = T))
-  iv$add_rule("NDF",sv_between(50,800,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen.",allow_na = T))
-  iv$add_rule("ADF",sv_between(20,500,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen.",allow_na = T))
-  iv$add_rule("NFC",sv_between(0,800,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen.",allow_na = T))
-  iv$add_rule("TS",sv_between(0,20,message_fmt = "Eingabe muss zwsichen {left} und {right} liegen."))
+  iv$add_rule("ncow",sv_between(1,2000,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("milk_y",sv_between(5,45,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("n_lac",sv_between(1,10,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("m_p",sv_between(2.8,6,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("n_lac",sv_between(1,10,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("dim",sv_between(5,330,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("lwt",sv_between(400,800,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("pqual",sv_between(5,7.5,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("preg",sv_between(5,15,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("postg",sv_between(3,8,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("mult",sv_between(120,300,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("konst",sv_between(-1000,1000,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
+  iv$add_rule("NEL",sv_between(4,9,message_fmt = "Eingabe muss zwischen {left} und {right} liegen.",allow_na = T))
+  iv$add_rule("XP",sv_between(50,600,message_fmt = "Eingabe muss zwischen {left} und {right} liegen.",allow_na = T))
+  iv$add_rule("NDF",sv_between(50,800,message_fmt = "Eingabe muss zwischen {left} und {right} liegen.",allow_na = T))
+  iv$add_rule("ADF",sv_between(20,500,message_fmt = "Eingabe muss zwischen {left} und {right} liegen.",allow_na = T))
+  iv$add_rule("NFC",sv_between(0,800,message_fmt = "Eingabe muss zwischen {left} und {right} liegen.",allow_na = T))
+  iv$add_rule("TS",sv_between(0,20,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
   
   iv$enable()  
+  #attributes
+
   ####own feed input#####
 observe({
   if(is.null(rv$dt_feed)){
@@ -160,8 +170,10 @@ observe({
   }
   })
 
+
   
   observeEvent(input$FMplus,{
+    
     showModal(modalDialog(
       title = "Eingabe Futtermittel",
       selectInput("FM","Futtermittel",choices = c("eigenes Futtermittel",gfm[,label])),
@@ -186,7 +198,7 @@ observe({
 feedinput<-reactive({
   if(input$FM=="eigenes Futtermittel"){
     feedinput<- data.table(
-                            FMuser=input$FMuser,
+                            FMuser=substr(input$FMuser,1,18),
                             TS=input$TS,
                             NEL=input$TS,
                             XP=input$XP,
@@ -211,8 +223,7 @@ feedinput<-reactive({
 })
 
   observeEvent(input$FMown_save,{
-    print(feedinput()) 
-    if(is.null(rv$dt_feed)){
+    if(nrow(rv$dt_feed)==0){
       rv$dt_feed<-feedinput()
       rv$dt_feed[,FMcount:=1]
     }  else{
@@ -267,7 +278,7 @@ feedinput<-reactive({
             NFC=dt_feed_t[,sum(TS*NFC)],
             NDF_GF=dt_feed_t[art=="Grundfutter",sum(TS*NDF)])]
     dt[,c("ADF","NDF","NFC","NDF_GF"):=lapply(.SD,function(x)x/dmi),.SDcols=c("ADF","NDF","NFC","NDF_GF")]
-    dt[,fibre_pr:=ifelse(NDF>=300 & ADF>=200 & NFC<=400,"ausreichend","nicht ausreichend")]# mehrstufig evaluieren, GF =pasturebased+high conc---?
+    dt[,fibre_pr:=ifelse(NDF>=t_NDF & ADF>=t_ADF & NFC<=t_NFC,"ausreichend","nicht ausreichend")]# mehrstufig evaluieren, GF =pasturebased+high conc---?
     dt[,e_req:=ecm*3.3+input$lwt^0.75*0.293]
     dt[,e_prov:=dt_feed_t[,sum(TS*NEL)]]
     dt[,fd_p_herd:=dmi_p*input$ncow]
