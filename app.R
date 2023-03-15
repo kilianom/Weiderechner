@@ -2,16 +2,18 @@ library(data.table)
 library(ggplot2)
 library(shiny)
 library(shinyvalidate)
+library(shinydashboard)
 library(bslib)
 theme_a<-bs_theme(
   version = 3,
-  bootswatch = "sandstone")
+  bootswatch = "readable")
 
 gfm<-fread("FM.csv")
 #set thresholds for fibre
-t_NDF<-300
+t_NDF<-350
 t_ADF<-200
 t_NFC<-400
+t_GFNDF<-200
 
 GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
   br<-ifelse(br=="milchbetont",-1.667,-2.631)
@@ -20,7 +22,7 @@ GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
   DMI<-DMI*0.93+0.47
   DMI
 }
-list.files("helper/")
+
 ######################ui#################################################################################
 ui <-fluidPage(theme = theme_a,
   titlePanel("Weiderechner"),
@@ -96,17 +98,22 @@ ui <-fluidPage(theme = theme_a,
                  shinyjs::hidden(
                    div(id = "hiddenbox1",
           hr(),
-      h2("Berechnungen"),
+      h3("Berechnungen"),
       br(),
       div(DT::dataTableOutput('table'),style="font-size:90%"),
       hr(style = "border-top: 1px solid #000000;"),
       br(),
-     box(
-       plotOutput("block"),
-       width = 6),
-       h2("Eingaben"),
-      tableOutput("inputs")
-       )
+      fluidRow(column(width = 8,offset = 2,
+       plotOutput("block"))
+      ),
+     fluidRow(
+     h2("Eingaben"),
+     br(),
+    
+    tableOutput('inputdata')
+                   ))
+     
+      
       )
      ),
 
@@ -118,7 +125,7 @@ ui <-fluidPage(theme = theme_a,
       plotOutput("breaks"),
       width = 8),
       box(
-       h2("Weideparameter (advanced)"),
+       h3("Weideparameter (advanced)"),
                  numericInput("preg","Weidereife Aufwuchshöhe in cm (komprimiert) ",min = 6,max=15,value = 10),
                  numericInput("postg","Weiderest Aufwuchshöhe in cm (komprimiert) ",min = 3,max = 6,value = 4.5),
                 p("Die Angaben entsprechend der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
@@ -300,8 +307,7 @@ feedinput<-reactive({
                    fm=dt_feed[art=="Grundfutter",sum(TS)]
                   
                   )
-   print(dt_feed)
-   
+
     dt[,dmi:=GRUBER_DMI(n_lac=input$n_lac,br=input$br,dim=input$dim,lwt=input$lwt,ecm=ecm,cm=cm,fq_f=fq_f)]
     dt[,dmi_p:=dmi-(cm+fm)]
     dt_feed_t<-rbind(dt_feed,
@@ -314,7 +320,7 @@ feedinput<-reactive({
             NFC=dt_feed_t[,sum(TS*NFC)],
             NDF_GF=dt_feed_t[art=="Grundfutter",sum(TS*NDF)])]
     dt[,c("ADF","NDF","NFC","NDF_GF"):=lapply(.SD,function(x)x/dmi),.SDcols=c("ADF","NDF","NFC","NDF_GF")]
-    dt[,fibre_pr:=ifelse(NDF>=t_NDF & ADF>=t_ADF & NFC<=t_NFC,"ausreichend","nicht ausreichend")]# mehrstufig evaluieren, GF =pasturebased+high conc---?
+    dt[,fibre_pr:=ifelse(NDF>=t_NDF & ADF>=t_ADF & NFC<=t_NFC & NDF_GF>=t_GFNDF,"ausreichend","nicht ausreichend")]# mehrstufig evaluieren, GF =pasturebased+high conc---?
     dt[,e_req:=ecm*3.3+input$lwt^0.75*0.293]
     dt[,e_prov:=dt_feed_t[,sum(TS*NEL)]]
     dt[,fd_p_herd:=dmi_p*input$ncow]
@@ -324,7 +330,7 @@ feedinput<-reactive({
   })
   
   breaks_d<-c(0.5,1,2,3)
-  growth_rates<-seq(40,100,length.out=8)
+  growth_rates<-seq(25,100,length.out=8)
   bsdt<-reactive({
     ha_d<-dt()[,fd_p_herd/growth_rates]
     data.table(fd_p_herd=dt()[,fd_p_herd],
@@ -369,7 +375,6 @@ feedinput<-reactive({
       output$table<-DT::renderDataTable({
         if (is.null(rv$dt_calc)){
             return(NULL)} else{
-              print(colnames(rv$dt_calc))
                 calc<-rv$dt_calc[, !c("fm","cm","m_y","m_f","m_p","br","dim","n_lac","lwt","n_cow","a_TS")]
                 calc[,':='(e_bal=e_prov-e_req)]
                 calc[,c("fq_f","n_sz")]<-NULL
@@ -396,7 +401,10 @@ feedinput<-reactive({
               geom_line(linewidth=1.4)+
               labs(x="Wachstumsrate kg TS pro Tag und Hektar", y="benötigte Gesamtweidefläche ha",color="Szenario",title = "Benötigte Gesamtweidefläche\nbei unterschiedlichem Wachstum")+
               theme_bw()+
-              theme(text=element_text(size = 14))+
+              theme(text=element_text(size = 18),
+                    axis.text = element_text(size = 18),
+                    legend.text = element_text(size = 18))+
+              guides(color = guide_legend(override.aes = list(size = 10)))+
               scale_color_manual(labels=unique(rv$dt_ra$sz),values=paletteer::paletteer_d("awtools::a_palette"))
             block
           }
@@ -411,16 +419,18 @@ feedinput<-reactive({
         rv$dt_input<-data.table(cbind(rv$dt_input,as.matrix(t(dt()))))
         colnames(rv$dt_input)<-c(old_cols,input$sz)
       }
-    }
     
-    output$inputs<-renderTable({
+    
+    output$inputdata<-renderTable({
       if (is.null(rv$dt_input)){
-        return(NULL)}else{
+        return(NULL)} else{
           in_t<-rv$dt_input[vars %in% c("fq","fm","cm","m_y","m_f","m_p","br","dim","n_lac","lwt","n_cow"),]
           in_t[,vars:=NULL]
+        
         }
+     
     })
-    
+    }
     ##reset feed inputs
     rv$dt_feed<-NULL
     
@@ -435,11 +445,14 @@ feedinput<-reactive({
           } else{
         ats<-input$mult*(input$preg-input$postg)+input$konst
         breaks<- ggplot(rv$dt_ra,aes(x=as.factor(breaks_d),y=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)))+
-            geom_point(size=2,position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
+            geom_point(size=3,position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
             geom_linerange(aes(ymin=0,x=as.factor(breaks_d),ymax=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)),position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
             labs(x="Tage pro Portion", y="Portionsfläche ha",color="Szenario",title = "Benötigte Weidefläche\nfür unterschiedliche Besatzzeiten")+
             theme_bw()+
-            theme(text=element_text(size = 14))+
+            theme(text=element_text(size = 18),
+                  axis.text = element_text(size = 18),
+                  legend.text = element_text(size = 18))+
+            guides(color = guide_legend(override.aes = list(size = 4)))+
             scale_color_manual(labels=unique(rv$dt_ra$sz),values=paletteer::paletteer_d("awtools::a_palette"))
           breaks
         }
