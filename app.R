@@ -1,10 +1,10 @@
 library(data.table)
 library(ggplot2)
 library(shiny)
-library(shinydashboard)
 library(shinyvalidate)
-library(bslib)
-theme_a<-bs_theme(version = 5)
+theme_a<-bs_theme(
+  version = 3,
+  bootswatch = "flatly")
 
 gfm<-fread("FM.csv")
 #set thresholds for fibre
@@ -21,17 +21,26 @@ GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
 }
 list.files("helper/")
 ######################ui#################################################################################
-ui <-dashboardPage(
-  dashboardHeader(title ="Weiderechner",
-                  tags$li(class="dropdown",actionButton("help1","Information", onclick ="window.open('helper/Manual_Weiderechner.html', '_blank')",icon = icon("question"))),
-                  titleWidth = "22%"),
-  dashboardSidebar(width = 520,
-                   h3("Eingaben"),
-                   sidebarMenu(
+ui <-fluidPage(theme = theme_a,
+  titlePanel("Weiderechner"),
+  fluidRow(
+           column(width =11,
+                  actionButton("toggle","Eingabebereich",icon = icon("database"))),
+           column(width=1 ,
+                  actionButton("help1","Information", onclick ="window.open('helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))
+                  ),
+
+  sidebarLayout(
+                div(id="sidebar",
+                           
+                sidebarPanel(
                      shinyjs::useShinyjs(),
                      shinybrowser::detect(),
-                    
-                      menuItem("Herde",icon = icon("cow"),
+                     
+                     icon("cow","fa-2x"),
+                     shinyBS::bsCollapse(
+                       shinyBS::bsCollapsePanel(style = "success",title = "Eingabe Herde",
+                      h3("Herde"),
                               numericInput("ncow","Kuhanzahl",min = 1,max=2000,value = 90),
                               selectInput("br","Rasse",choices = c("milchbetont"="milchbetont","zweinutzung"="zweinutzung")),
                               sliderInput("lwt","Kuhgewicht kg", min = 450,max =800,value = 650),
@@ -39,28 +48,32 @@ ui <-dashboardPage(
                               sliderInput("m_p","Protein %",min = 2.8,max = 6,value = 3.4,step = 0.1),
                               sliderInput("m_f","Fett %",min = 2.8,max=6,value = 4,step = 0.1),
                               sliderInput("dim","Laktationstag",min=5,max =330,value = 150),
-                              sliderInput("n_lac","Laktationszahl",min = 1,max=10,value = 2)),
+                              sliderInput("n_lac","Laktationszahl",min = 1,max=10,value = 2)
+                     ) ),
  
-                    
-                                        
-                      menuItem("Fütterung ",icon = icon("house"),
+                     icon("seedling","fa-2x"),
+                     shinyBS::bsCollapse(
+                       shinyBS::bsCollapsePanel(style = "success",title = "Eingabe Fütterung",
+                      h3("Fütterung "),
                               h4("Ration Stall"),
                               p("Eingaben in kg Trockensubstanz pro Kuh und Tag nach Abzug Fütterungsrest"),
                               actionButton("FMplus","Futtermittel eingeben",width = '50%'),
                               DT::dataTableOutput('feed_table'),
                               actionButton("FMminus","ausgewähltes Futtermittel entfernen",width = '50%'),
+                              br(),
+                              hr(style = "border-top: 1px solid #000000;"),
+                              br(), 
                               h4("Inhaltsstoffe Weidefutter"),
                               sliderInput("pqual","Energiegehalt MJ NEL /kg TS",min = 4.5,max=7.5,value=6.5,step = 0.1),
                               sliderInput("pXP","XP g/kg TS",min = 100,max=300,value=200,step = 1),
                               sliderInput("pNDF","NDF g/kg TS",min = 200,max=600,value=387,step = 1),
                               sliderInput("pADF","ADF g/kg TS",min = 100,max=500,value=261,step = 1),
                               sliderInput("pNFC","NFC g/kg TS",min = 150,max=500,value=253,step = 1)
-                              ),
-                             
-                   
+                      )),
+                    
                      h4("Benennung Szenario"),
-                     textInput("sz","Name Szenario",value = "Standardszenario"),
-                     actionButton("save","Szemario hinzufügen"),
+                     textInput("sz","",value = "Standardszenario"),
+                     actionButton("save","Szenario hinzufügen"),
                      conditionalPanel( condition = "output.nrows",
                                        h4("Szenarien entfernen")),
                      splitLayout(
@@ -74,11 +87,14 @@ ui <-dashboardPage(
               
                                  )
   ),
-  dashboardBody(
-    fluidRow( 
+  mainPanel(
+   
+    fluidRow(
       tabsetPanel(
         tabPanel(title=h4("Weidefläche und Versorgung"),
-      hr(),
+                 shinyjs::hidden(
+                   div(id = "hiddenbox1",
+          hr(),
       h2("Berechnungen"),
       br(),
       div(DT::dataTableOutput('table'),style="font-size:90%"),
@@ -89,10 +105,14 @@ ui <-dashboardPage(
        width = 6),
        h2("Eingaben"),
       tableOutput("inputs")
+       )
+      )
      ),
-   
+
    tabPanel(title = h4("Einteilung Parzellen und Portionen"),
      fluidRow(
+       shinyjs::hidden(
+         div(id = "hiddenbox2",
       box(
       plotOutput("breaks"),
       width = 8),
@@ -100,9 +120,9 @@ ui <-dashboardPage(
        h2("Weideparameter (advanced)"),
                  numericInput("preg","Weidereife Aufwuchshöhe in cm (komprimiert) ",min = 6,max=15,value = 10),
                  numericInput("postg","Weiderest Aufwuchshöhe in cm (komprimiert) ",min = 3,max = 6,value = 4.5),
-                p("Die Angaben entsprechend der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter. 
-                  Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind bei ",  
-                  a("Raumberg Gumpenstein", 
+                p("Die Angaben entsprechend der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
+                  Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind bei ",
+                  a("Raumberg Gumpenstein",
                    href = "https://raumberg-gumpenstein.at/jdownloads/Tagungen/Viehwirtschaftstagung/Viehwirtschaftstagung%202015/1v_2015_steinwidder_haeusler.pdf",target="_blank"),
                   " zu finden."),
           h4("Umrechnung der Aufwuchshöhe (cm) in verfügbare Trockenmasse (kg TM/ha)"),
@@ -110,15 +130,19 @@ ui <-dashboardPage(
           numericInput("mult","Multiplikator",value = 240,min=100,max=400),
           numericInput("konst","Konstante",value = -110,min = -1000,max=1000)
           ),
-          p("Der Multiplikator wird mit der komprimierten Aufwuchshöhe (cm) multipliziert und die Konstante wird nach Vorzeichen addiert. 
+          p("Der Multiplikator wird mit der komprimierten Aufwuchshöhe (cm) multipliziert und die Konstante wird nach Vorzeichen addiert.
               Die eingestellten Werte sind aus dem MuD Projekt entstanden und sollten nur verändert werden,
               wenn eine betriebsspezifische Umrechnungsformel existiert.")
-        ,width=4))
+        ,width=4)
+                  )
+                )
+              )
+            )
+          )
         )
       )
     )
   )
-)
 
 ###################### Define server logic ################
 server <- function(input, output,session) {
@@ -127,6 +151,17 @@ server <- function(input, output,session) {
   shinyhelper::observe_helpers(help_dir = "helper")
   ####reactive values####
   rv<-reactiveValues(dt_ra=NULL,dt_input=NULL,dt_calc=NULL,dt_feed=NULL)
+  
+  observeEvent(input$save, {
+    shinyjs::show(id = "hiddenbox1")
+    })
+  observeEvent(input$save, {
+    shinyjs::show(id = "hiddenbox2")
+  })
+  
+  observeEvent(input$toggle, {
+    shinyjs::toggle(id = "sidebar")
+  })
  ###validate inputs####
   iv<-InputValidator$new()#iniate validator
   iv$add_rule("ncow",sv_between(1,2000,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
