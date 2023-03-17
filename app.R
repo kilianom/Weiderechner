@@ -118,15 +118,19 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                  shinyjs::hidden(
                    div(id = "hiddenbox1",
           hr(),
+          box(width = 12,
       h3("Berechnungen"),
       br(),
       fluidRow(
       div(DT::dataTableOutput('table'),style="font-size:90%")),
       fluidRow(
       hr(style = "border-top: 1px solid #000000;")),
-      br(),
+      br()
+      ),
+      box(width = 12,
       fluidRow(column(width = 8,offset = 2,
        plotOutput("block"))
+      )
       ),
      fluidRow(column(width = 12,offset = 1,
      h2("Eingaben"),
