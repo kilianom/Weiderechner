@@ -28,10 +28,11 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
    body {
       font-family: Arial}')),
                
-  titlePanel(fluidRow(
+  titlePanel(
+             fluidRow(
     column(width = 2,"Weiderechner"),
     column(width= 3,actionButton("help1","Information", onclick ="window.open('helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))),
-  ),
+    windowTitle = "Weiderechner" ),
              fluidRow(
            column(width =11,
                   actionButton("toggle","Eingabebereich",icon = icon("bars"))),
@@ -101,7 +102,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                       column(width = 3,
                      conditionalPanel( condition = "output.nrows",
                                        actionButton("rmsz","Auswahl entfernen"))),
-                     column(width=4,
+                     column(width=5,
                      conditionalPanel( condition = "output.nrows",
                                        actionButton("reset","Alle entfernen"))
                      ))
@@ -119,8 +120,10 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
           hr(),
       h3("Berechnungen"),
       br(),
-      div(DT::dataTableOutput('table'),style="font-size:90%"),
-      hr(style = "border-top: 1px solid #000000;"),
+      fluidRow(
+      div(DT::dataTableOutput('table'),style="font-size:90%")),
+      fluidRow(
+      hr(style = "border-top: 1px solid #000000;")),
       br(),
       fluidRow(column(width = 8,offset = 2,
        plotOutput("block"))
