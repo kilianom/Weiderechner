@@ -27,6 +27,7 @@ GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
 ui <-fluidPage(theme = theme_a,tags$head(tags$style('
    body {
       font-family: Arial}')),
+               
   titlePanel(fluidRow(
     column(width = 2,"Weiderechner"),
     column(width= 3,actionButton("help1","Information", onclick ="window.open('helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))),
@@ -43,10 +44,15 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                 sidebarPanel(
                      shinyjs::useShinyjs(),
                     # shinybrowser::detect(),
-                     
+                    fluidRow( 
                      icon("cow","fa-2x"),
-                     shinyBS::bsCollapse(
-                       shinyBS::bsCollapsePanel(style = "success",title = "Eingabe Herde",
+                     wellPanel(
+                       style="background-color: #69b62d;padding-left: 0px",
+                    actionButton("toggle_herd","Eingabe Herde",icon=icon("chevron-down"),
+                                 style="background-color: #69b62d;border-color: #69b62d;font-weight: bold")
+                              ),
+                    shinyjs::hidden(
+                      div(id="herd_sidebar",
                       h3("Herde"),
                               numericInput("ncow","Kuhanzahl",min = 1,max=2000,value = 90),
                               selectInput("br","Rasse",choices = c("milchbetont"="milchbetont","zweinutzung"="zweinutzung")),
@@ -56,11 +62,16 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                               sliderInput("m_f","Fett %",min = 2.8,max=6,value = 4,step = 0.1),
                               sliderInput("dim","Laktationstag",min=5,max =330,value = 150),
                               sliderInput("n_lac","Laktationszahl",min = 1,max=10,value = 2)
-                     ) ),
- 
-                     icon("seedling","fa-2x"),
-                     shinyBS::bsCollapse(
-                       shinyBS::bsCollapsePanel(style = "success",title = "Eingabe Fütterung",
+                     ) )),
+                    fluidRow(
+                    icon("seedling","fa-2x"),
+                    wellPanel(
+                      style="background-color: #69b62d;padding-left: 0px",
+                    actionButton("toggle_feed",label="Fütterung",icon=icon("chevron-down"),
+                                 style="background-color: #69b62d;border-color: #69b62d;font-weight: bold")
+                  ),
+                  shinyjs::hidden(
+                    div(id="feed_sidebar",
                       h3("Fütterung "),
                               h4("Ration Stall"),
                               p("Eingaben in kg Trockensubstanz pro Kuh und Tag nach Abzug Fütterungsrest"),
@@ -76,8 +87,9 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                               sliderInput("pNDF","NDF g/kg TS",min = 200,max=600,value=387,step = 1),
                               sliderInput("pADF","ADF g/kg TS",min = 100,max=500,value=261,step = 1),
                               sliderInput("pNFC","NFC g/kg TS",min = 150,max=500,value=253,step = 1)
-                      )),
-                    
+                      ))
+                ),
+               
                      h4("Benennung Szenario"),
                      textInput("sz","",value = "Standardszenario"),
                      actionButton("save","Szenario hinzufügen"),
@@ -97,7 +109,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
               
                                  )
   ),
-  mainPanel(
+  mainPanel(id="mainpanel",
    
     fluidRow(
       tabsetPanel(
@@ -113,12 +125,12 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
       fluidRow(column(width = 8,offset = 2,
        plotOutput("block"))
       ),
-     fluidRow(
+     fluidRow(column(width = 12,offset = 1,
      h2("Eingaben"),
      br(),
     
     tableOutput('inputdata')
-                   ))
+                   )))
      
       
       )
@@ -164,7 +176,18 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
 
 ###################### Define server logic ################
 server <- function(input, output,session) {
-  
+  observe({
+  showModal(modalDialog(size = 'l',
+    title = "Anleitung",
+    fluidRow(
+   column(width = 6,
+    img(src='sidebar_closed.png', align = "left",heigth="75%",width="75%")),
+   column(width = 6,"Im Eingabebereich links werden Daten zur Herde und zur Fütterung eingegeben. 
+          Nach Abschluss der Eingabe wird ein Name für das Szenario vergeben (z.B. 'keine Zufütterung') und das Szenario wird hinzugefügt.
+          Im Bereich rechts werden nun Informationen zur Versorgung der Kühe und zum Bedarf der Weidefläche gezeigt. Außerdem können unterschiedliche Zuteilungen für
+          das Weidemanagement betrachtet werden. Es können weitere Szenarien hinzugefügt werden, um unterschiedliche Optionen zu vergleichen.")),
+    footer = tagList(modalButton("Verstanden"))))
+  })
   ####helpers####
   shinyhelper::observe_helpers(help_dir = "helper")
   ####reactive values####
@@ -179,7 +202,28 @@ server <- function(input, output,session) {
   
   observeEvent(input$toggle, {
     shinyjs::toggle(id = "sidebar")
+    if(input$toggle[1]%%2==1){
+      shinyjs::removeCssClass("mainpanel", "col-sm-8")
+      shinyjs::addCssClass("mainpanel", "col-sm-12")
+    } else {
+      shinyjs::removeCssClass("mainpanel", "col-sm-12")
+      shinyjs::addCssClass("mainpanel", "col-sm-8")
+     }
   })
+  
+  observeEvent(input$toggle_feed, {
+    shinyjs::hide(id = "herd_sidebar")
+    shinyjs::toggle(id = "feed_sidebar")
+    
+  })
+  
+  observeEvent(input$toggle_herd, {
+    shinyjs::hide(id = "feed_sidebar")
+    shinyjs::toggle(id = "herd_sidebar")
+    
+  })
+  
+  
  ###validate inputs####
   iv<-InputValidator$new()#iniate validator
   iv$add_rule("ncow",sv_between(1,2000,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
