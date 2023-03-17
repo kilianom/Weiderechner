@@ -96,16 +96,18 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                      actionButton("save","Szenario hinzufügen"),
                      conditionalPanel( condition = "output.nrows",
                                        h4("Szenarien entfernen")),
+                     conditionalPanel( condition = "output.nrows",
+                                  checkboxGroupInput("resetsz","","")),
                     fluidRow(
-                      conditionalPanel( condition = "output.nrows",
-                                        checkboxGroupInput("resetsz","","")),
-                      column(width = 3,
+                     
+                     column(width = 5,
                      conditionalPanel( condition = "output.nrows",
                                        actionButton("rmsz","Auswahl entfernen"))),
-                     column(width=5,
+                     column(width=5,offset = 1,
                      conditionalPanel( condition = "output.nrows",
-                                       actionButton("reset","Alle entfernen"))
-                     ))
+                                       actionButton("reset","Alle entfernen")))
+                     
+                     )
                     
               
                                  )
@@ -431,7 +433,7 @@ feedinput<-reactive({
         setorder(rv$dt_calc,n_sz)}
       if(nrow(rv$dt_calc)>3){
         shinyjs::disable("save")
-        shinyalert::shinyalert("Szenarienanzahl","Maximalanzahl Szenarien erreicht. Für weitere Szenarien bitte die kostenpflichtige Version nutzen",type = "warning")
+        shinyalert::shinyalert("Szenarienanzahl","Maximalanzahl Szenarien erreicht. Bitte einzelne oder mehrere Szenarien entfernen.",type = "warning")
       } 
       output$table<-DT::renderDataTable({
         if (is.null(rv$dt_calc)){
@@ -444,7 +446,7 @@ feedinput<-reactive({
                 setcolorder(calc,c("Szenario","ECM","Futteraufnahme","benötigte Futteraufnahme Weide","Herdenbedarf Weide kg TS",
                                    "Energiebedarf","Energieangebot","Energiebilanz"))
                 calc<-DT::datatable(calc,filter = "none",rownames = F,
-                              options = list(dom='t',language = list(zeroRecords = "Keine Szenarien vorhanden")))
+                              options = list(dom='t',scrollX=T,scrollCollapse=T,language = list(zeroRecords = "Keine Szenarien vorhanden")))
                 calc<-DT::formatStyle(calc,columns=c("Energiebilanz"),color = DT::styleInterval(cuts=0,c("red","black")),fontWeight = "bold")
                 calc<-DT::formatStyle(calc,columns=c("Faserversorgung"),color = DT::styleEqual("nicht ausreichend","red"),fontWeight = "bold")
                
@@ -460,7 +462,7 @@ feedinput<-reactive({
           return(NULL)}else{
             block<- ggplot(rv$dt_ra,aes(x=gr,y=g_block,color=as.factor(n_sz)))+
               geom_line(linewidth=1.4)+
-              labs(x="Wachstumsrate kg TS pro Tag und Hektar", y="benötigte Gesamtweidefläche ha",color="Szenario",title = "Benötigte Gesamtweidefläche\nbei unterschiedlichem Wachstum")+
+              labs(x="Wachstumsrate kg TS pro Tag und Hektar", y="benötigte Gesamtweidefläche ha",color="Szenario",title = "Benötigte Gesamtweidefläche für die gesamte Herde in Abhängigkeit \n von täglichen Wachstumsraten des Bestandes")+
               theme_bw()+
               theme(text=element_text(size = 18,family = "Arial"),
                     axis.text = element_text(size = 18),
@@ -508,7 +510,7 @@ feedinput<-reactive({
         breaks<- ggplot(rv$dt_ra,aes(x=as.factor(breaks_d),y=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)))+
             geom_point(size=3,position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
             geom_linerange(aes(ymin=0,x=as.factor(breaks_d),ymax=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)),position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
-            labs(x="Tage pro Portion", y="Portionsfläche ha",color="Szenario",title = "Benötigte Weidefläche\nfür unterschiedliche Besatzzeiten")+
+            labs(x="Tage pro Portion", y="Portionsfläche ha",color="Szenario",title = "Benötigte Weidefläche für die gesamte Herde für unterschiedliche Besatzzeiten")+
             theme_bw()+
             theme(text=element_text(size = 18,family = "Arial"),
                   axis.text = element_text(size = 18),
