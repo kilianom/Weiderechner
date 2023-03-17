@@ -24,13 +24,17 @@ GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
 }
 
 ######################ui#################################################################################
-ui <-fluidPage(theme = theme_a,
-  titlePanel("Weiderechner"),
-  fluidRow(
+ui <-fluidPage(theme = theme_a,tags$head(tags$style('
+   body {
+      font-family: Arial}')),
+  titlePanel(fluidRow(
+    column(width = 2,"Weiderechner"),
+    column(width= 3,actionButton("help1","Information", onclick ="window.open('helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))),
+  ),
+             fluidRow(
            column(width =11,
-                  actionButton("toggle","Eingabebereich",icon = icon("database"))),
-           column(width=1 ,
-                  actionButton("help1","Information", onclick ="window.open('helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))
+                  actionButton("toggle","Eingabebereich",icon = icon("bars"))),
+           
                   ),
 
   sidebarLayout(
@@ -79,14 +83,17 @@ ui <-fluidPage(theme = theme_a,
                      actionButton("save","Szenario hinzufügen"),
                      conditionalPanel( condition = "output.nrows",
                                        h4("Szenarien entfernen")),
-                     splitLayout(
+                    fluidRow(
+                      conditionalPanel( condition = "output.nrows",
+                                        checkboxGroupInput("resetsz","","")),
+                      column(width = 3,
                      conditionalPanel( condition = "output.nrows",
-                                       actionButton("rmsz","Auswahl entfernen")),
+                                       actionButton("rmsz","Auswahl entfernen"))),
+                     column(width=4,
                      conditionalPanel( condition = "output.nrows",
                                        actionButton("reset","Alle entfernen"))
-                     ),
-                     conditionalPanel( condition = "output.nrows",
-                                       checkboxGroupInput("resetsz","",""))
+                     ))
+                    
               
                                  )
   ),
@@ -121,27 +128,30 @@ ui <-fluidPage(theme = theme_a,
      fluidRow(
        shinyjs::hidden(
          div(id = "hiddenbox2",
-      box(
-      plotOutput("breaks"),
-      width = 8),
-      box(
-       h3("Weideparameter (advanced)"),
-                 numericInput("preg","Weidereife Aufwuchshöhe in cm (komprimiert) ",min = 6,max=15,value = 10),
-                 numericInput("postg","Weiderest Aufwuchshöhe in cm (komprimiert) ",min = 3,max = 6,value = 4.5),
-                p("Die Angaben entsprechend der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
+             box(
+               h3("Weideparameter"),
+               splitLayout(
+               numericInput("preg","Weidereife Aufwuchshöhe in cm (komprimiert) ",min = 6,max=15,value = 10),
+               numericInput("postg","Weiderest Aufwuchshöhe in cm (komprimiert) ",min = 3,max = 6,value = 5),
+               ),
+               p("Die Angaben entsprechend der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
                   Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind bei ",
-                  a("Raumberg Gumpenstein",
+                 a("Raumberg Gumpenstein",
                    href = "https://raumberg-gumpenstein.at/jdownloads/Tagungen/Viehwirtschaftstagung/Viehwirtschaftstagung%202015/1v_2015_steinwidder_haeusler.pdf",target="_blank"),
-                  " zu finden."),
-          h4("Umrechnung der Aufwuchshöhe (cm) in verfügbare Trockenmasse (kg TM/ha)"),
-        splitLayout(
-          numericInput("mult","Multiplikator",value = 240,min=100,max=400),
-          numericInput("konst","Konstante",value = -110,min = -1000,max=1000)
-          ),
-          p("Der Multiplikator wird mit der komprimierten Aufwuchshöhe (cm) multipliziert und die Konstante wird nach Vorzeichen addiert.
+                 " zu finden."),
+               h4("Umrechnung der Aufwuchshöhe (cm) in verfügbare Trockenmasse (kg TM/ha)"),
+               splitLayout(
+                 numericInput("mult","Multiplikator",value = 240,min=100,max=400),
+                 numericInput("konst","Konstante",value = -110,min = -1000,max=1000)
+               ),
+               p("Der Multiplikator wird mit der komprimierten Aufwuchshöhe (cm) multipliziert und die Konstante wird nach Vorzeichen addiert.
               Die eingestellten Werte sind aus dem MuD Projekt entstanden und sollten nur verändert werden,
               wenn eine betriebsspezifische Umrechnungsformel existiert.")
-        ,width=4)
+               ,width=12),
+             box(
+      plotOutput("breaks"),
+      width = 12)
+     
                   )
                 )
               )
@@ -401,7 +411,7 @@ feedinput<-reactive({
               geom_line(linewidth=1.4)+
               labs(x="Wachstumsrate kg TS pro Tag und Hektar", y="benötigte Gesamtweidefläche ha",color="Szenario",title = "Benötigte Gesamtweidefläche\nbei unterschiedlichem Wachstum")+
               theme_bw()+
-              theme(text=element_text(size = 18),
+              theme(text=element_text(size = 18,family = "Arial"),
                     axis.text = element_text(size = 18),
                     legend.text = element_text(size = 18))+
               guides(color = guide_legend(override.aes = list(size = 10)))+
@@ -432,7 +442,7 @@ feedinput<-reactive({
     })
     }
     ##reset feed inputs
-    rv$dt_feed<-NULL
+    #rv$dt_feed<-NULL
     
   })
   
@@ -449,7 +459,7 @@ feedinput<-reactive({
             geom_linerange(aes(ymin=0,x=as.factor(breaks_d),ymax=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)),position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
             labs(x="Tage pro Portion", y="Portionsfläche ha",color="Szenario",title = "Benötigte Weidefläche\nfür unterschiedliche Besatzzeiten")+
             theme_bw()+
-            theme(text=element_text(size = 18),
+            theme(text=element_text(size = 18,family = "Arial"),
                   axis.text = element_text(size = 18),
                   legend.text = element_text(size = 18))+
             guides(color = guide_legend(override.aes = list(size = 4)))+
