@@ -22,7 +22,9 @@ GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
   DMI<-DMI*0.93+0.47
   DMI
 }
+list.files("www/helper/",full.names = T)
 
+getwd()
 ######################ui#################################################################################
 ui <-fluidPage(theme = theme_a,tags$head(tags$style('
    body {
@@ -31,7 +33,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
   titlePanel(
              fluidRow(
     column(width = 2,"Weiderechner"),
-    column(width= 3,actionButton("help1","Information", onclick ="window.open('helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))),
+    column(width= 3,actionButton("help1","Information", onclick ="window.open('/helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))),
     windowTitle = "Weiderechner" ),
              fluidRow(
            column(width =11,
@@ -155,23 +157,27 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                numericInput("preg","Weidereife Aufwuchshöhe in cm (komprimiert) ",min = 6,max=15,value = 10),
                numericInput("postg","Weiderest Aufwuchshöhe in cm (komprimiert) ",min = 3,max = 6,value = 5),
                ),
-               p("Die Angaben entsprechend der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
+               p("Die Angaben entsprechen der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
                   Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind bei ",
                  a("Raumberg Gumpenstein",
                    href = "https://raumberg-gumpenstein.at/jdownloads/Tagungen/Viehwirtschaftstagung/Viehwirtschaftstagung%202015/1v_2015_steinwidder_haeusler.pdf",target="_blank"),
-                 " zu finden."),
-               h4("Umrechnung der Aufwuchshöhe (cm) in verfügbare Trockenmasse (kg TM/ha)"),
-               splitLayout(
-                 numericInput("mult","Multiplikator",value = 240,min=100,max=400),
-                 numericInput("konst","Konstante",value = -110,min = -1000,max=1000)
-               ),
-               p("Der Multiplikator wird mit der komprimierten Aufwuchshöhe (cm) multipliziert und die Konstante wird nach Vorzeichen addiert.
-              Die eingestellten Werte sind aus dem MuD Projekt entstanden und sollten nur verändert werden,
-              wenn eine betriebsspezifische Umrechnungsformel existiert.")
-               ,width=12),
+                 " zu finden.")),
+               
              box(
       plotOutput("breaks"),
-      width = 12)
+      width = 12),
+      box(actionButton("CSHTS","Formel Rising Plate Meter",icon=icon("chevron-down")),
+      shinyjs::hidden(
+        div(id = "hiddenbox3",
+            h5("Umrechnung der komprimierten Aufwuchshöhe (cm) in Futterangebot (kg TM /ha) "),
+            splitLayout(
+              numericInput("mult","Multiplikator",value = 240,min=100,max=400),
+              numericInput("konst","Konstante",value = -110,min = -1000,max=1000)
+            ),
+            p("Der Multiplikator wird mit der komprimierten Aufwuchshöhe (cm) multipliziert und die Konstante wird nach Vorzeichen addiert.
+              Die eingestellten Werte sind aus dem MuD Projekt entstanden und sollten nur verändert werden,
+              wenn eine betriebsspezifische Umrechnungsformel existiert.")
+            ,width=12))),
      
                   )
                 )
@@ -186,15 +192,19 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
 ###################### Define server logic ################
 server <- function(input, output,session) {
   observe({
-  showModal(modalDialog(size = 'l',
+  showModal(modalDialog(size = 'l',##put that in md 
     title = "Anleitung",
     fluidRow(
    column(width = 6,
     img(src='sidebar_closed.png', align = "left",heigth="75%",width="75%")),
-   column(width = 6,"Im Eingabebereich links werden Daten zur Herde und zur Fütterung eingegeben. 
-          Nach Abschluss der Eingabe wird ein Name für das Szenario vergeben (z.B. 'keine Zufütterung') und das Szenario wird hinzugefügt.
-          Im Bereich rechts werden nun Informationen zur Versorgung der Kühe und zum Bedarf der Weidefläche gezeigt. Außerdem können unterschiedliche Zuteilungen für
-          das Weidemanagement betrachtet werden. Es können weitere Szenarien hinzugefügt werden, um unterschiedliche Optionen zu vergleichen.")),
+   column(width = 6,
+         div(HTML("Die Weiderechner Anwendung sollte zur fehlerfreien Darstellung an Desktops PCs oder Tablets mit ausreichender Größe genutzt werden.
+                Im Eingabebereich links werden Daten zur Herde [<em>Eingabe Herde</em>] und zur Fütterung [<em>Eingabe Fütterung</em>] eingegeben. 
+                Nach Abschluss der Eingabe wird ein Name für das Szenario [<em>Benennung Szenario</em>] vergeben (z.B. 'keine Zufütterung') und das Szenario wird hinzugefügt [<em>Szenario hinzufügen</em>].
+                Im Bereich rechts werden nun Informationen zur Versorgung der Kühe und zum Bedarf der Weidefläche gezeigt [<em>Weidefläche und Versorgung</em>]. Außerdem können unterschiedliche Zuteilungen für
+                das Weidemanagement betrachtet werden [<em>Einteilung Parzellen und Portionen</em>]. Es können weitere Szenarien hinzugefügt werden, um unterschiedliche Optionen zu vergleichen. 
+                Im Bereich  [<em>Einteilung Parzellen und Portionen</em>] können unterschiedliche Weideaufwuchshöhen und Weidereste zur Planung der Parzellengröße eingegeben werden.
+                Hierfür sollten Anwender:innen sich mit der Aufwuchsmessung mit dem Rising Plate Meter und den Grundlagen des Weidemanagements vertraut machen 'LINK LEITFADEN'")))),
     footer = tagList(modalButton("Verstanden"))))
   })
   ####helpers####
@@ -232,7 +242,9 @@ server <- function(input, output,session) {
     
   })
   
-  
+  observeEvent(input$CSHTS, {
+    shinyjs::toggle(id = "hiddenbox3")
+  })
  ###validate inputs####
   iv<-InputValidator$new()#iniate validator
   iv$add_rule("ncow",sv_between(1,2000,message_fmt = "Eingabe muss zwischen {left} und {right} liegen."))
@@ -283,15 +295,15 @@ observe({
     showModal(modalDialog(
       title = "Eingabe Futtermittel",
       selectInput("FM","Futtermittel",choices = c("eigenes Futtermittel",gfm[,label])),
-      numericInput("TS","Menge kg TS",min=0,max=20,value = 0,step = 0.5),
+      numericInput("TS","Menge kg TM",min=0,max=20,value = 0,step = 0.5),
       conditionalPanel(condition="input.FM=='eigenes Futtermittel'",
       textInput("FMuser"," Bezeichnung Futtermittel"),
       selectInput("FMart","Futtermittel Art",choices = c("Grundfutter","Kraftfutter")),
-      numericInput("NEL","MJ NEL/kg TS",min=4,max=9,value = 6.5,step = 0.5),
-      numericInput("XP","XP g/kg TS",min = 50,max = 600,value = NA,step = 1),
-      numericInput("NDF","NDF g/kg TS",min = 50,max = 800,value = NA,step = 1),
-      numericInput("ADF","ADF g/kg TS",min = 20,max = 500,value = NA,step = 1),
-      numericInput("NFC","NFC g/kg TS",min = 20,max = 800,value = NA,step = 1)),
+      numericInput("NEL","MJ NEL/kg TM",min=4,max=9,value = 6.5,step = 0.5),
+      numericInput("XP","XP g/kg TM",min = 50,max = 600,value = NA,step = 1),
+      numericInput("NDF","NDF g/kg TM",min = 50,max = 800,value = NA,step = 1),
+      numericInput("ADF","ADF g/kg TM",min = 20,max = 500,value = NA,step = 1),
+      numericInput("NFC","NFC g/kg TM",min = 20,max = 800,value = NA,step = 1)),
       conditionalPanel(condition="input.FM!='eigenes Futtermittel'",
                        renderTable({gfm_s<-gfm[label==input$FM,.(NEL,XP,NDF,ADF,NFC)]
                                     data.frame(colnames(gfm_s),t(gfm_s[1,]))
@@ -396,25 +408,34 @@ feedinput<-reactive({
   growth_rates<-seq(25,100,length.out=8)
   bsdt<-reactive({
     ha_d<-dt()[,fd_p_herd/growth_rates]
+    if(dt()$fd_p_herd>0){
     data.table(fd_p_herd=dt()[,fd_p_herd],
                g_block= ha_d,
                gr=growth_rates,
                breaks_d=breaks_d,
                sz=input$sz,
                n_sz=0)
-    
+    } else {
+      data.table(fd_p_herd=0,
+                 g_block= 0,
+                 gr=growth_rates,
+                 breaks_d=breaks_d,
+                 sz=input$sz,
+                 n_sz=0)
+      }
   })
   
   observeEvent(input$save,{
+    print(bsdt())
     
     if(unique(bsdt()$sz %in% unique(rv$dt_ra$sz))){
       shinyalert::shinyalert("Eingabefehler","Bitte einen eindeutigen Szenarionamen eingeben",type = "warning")
     } else{
       print(colnames(dt()))
       input_params<-colnames(dt())
-      names(input_params)<-c("Energie Grundfutter MJ NEL/kg TS","ECM","Kraftfuttermenge","Grundfuttermenge","Futteraufnahme","benötigte Futteraufnahme Weide",
-                             "NDF g/kg TS","ADF g/kg TS","NFC g/kg TS","NDF GF g/kg TS","Faserversorgung","Energiebedarf","Energieangebot",
-                             "Herdenbedarf Weide kg TS","verfügbares Weidefutter kg/TS ha","Szenario","Nr Szenario","Kuhzahl",
+      names(input_params)<-c("Energie Grundfutter MJ NEL/kg TM","ECM","Kraftfuttermenge","Grundfuttermenge","Futteraufnahme","benötigte Futteraufnahme Weide",
+                             "NDF g/kg TM","ADF g/kg TM","NFC g/kg TM","NDF GF g/kg TM","Faserversorgung","Energiebedarf","Energieangebot",
+                             "Herdenbedarf Weide kg TM","verfügbares Weidefutter kg/TM ha","Szenario","Nr Szenario","Kuhzahl",
                              "Milchleistung","Fett %", "Eiweiß %","Rasse","Laktationstag","Laktationszahl","Lebendgewicht" )
       if(is.null(rv$dt_ra)){
         rv$dt_ra<-bsdt()
@@ -443,7 +464,7 @@ feedinput<-reactive({
                 calc[,c("fq_f","n_sz")]<-NULL
                 calc[,colnames(calc)[unlist(lapply(calc,is.numeric))]:=lapply(.SD,round,1),.SDcols=colnames(calc)[unlist(lapply(calc,is.numeric))]]
                 colnames(calc)<-c(names(input_params[input_params %in% colnames(calc)]),"Energiebilanz")
-                setcolorder(calc,c("Szenario","ECM","Futteraufnahme","benötigte Futteraufnahme Weide","Herdenbedarf Weide kg TS",
+                setcolorder(calc,c("Szenario","ECM","Futteraufnahme","benötigte Futteraufnahme Weide","Herdenbedarf Weide kg TM",
                                    "Energiebedarf","Energieangebot","Energiebilanz"))
                 calc<-DT::datatable(calc,filter = "none",rownames = F,
                               options = list(dom='t',scrollX=T,scrollCollapse=T,language = list(zeroRecords = "Keine Szenarien vorhanden")))
@@ -461,14 +482,15 @@ feedinput<-reactive({
         if (is.null(rv$dt_ra)){
           return(NULL)}else{
             block<- ggplot(rv$dt_ra,aes(x=gr,y=g_block,color=as.factor(n_sz)))+
-              geom_line(linewidth=1.4)+
-              labs(x="Wachstumsrate kg TS pro Tag und Hektar", y="benötigte Gesamtweidefläche ha",color="Szenario",title = "Benötigte Gesamtweidefläche für die gesamte Herde in Abhängigkeit \n von täglichen Wachstumsraten des Bestandes")+
-              theme_bw()+
-              theme(text=element_text(size = 18,family = "Arial"),
-                    axis.text = element_text(size = 18),
-                    legend.text = element_text(size = 18))+
-              guides(color = guide_legend(override.aes = list(size = 10)))+
-              scale_color_manual(labels=unique(rv$dt_ra$sz),values=paletteer::paletteer_d("awtools::a_palette"))
+                        geom_line(linewidth=1.4)+
+                        labs(x="Wachstumsrate kg TM pro Tag und Hektar", y="benötigte Gesamtweidefläche ha",color="Szenario",title = "Benötigte Gesamtweidefläche für die gesamte Herde in Abhängigkeit \n von täglichen Wachstumsraten des Bestandes")+
+                        theme_bw()+
+                        theme(text=element_text(size = 18,family = "Arial"),
+                              axis.text = element_text(size = 18),
+                              legend.text = element_text(size = 18))+
+                        guides(color = guide_legend(override.aes = list(size = 10)))+
+                        scale_color_manual(labels=unique(rv$dt_ra$sz),values=paletteer::paletteer_d("awtools::a_palette"))+
+                        ylim(c(0,max(rv$dt_ra$g_block)+2))
             block
           }
       })
@@ -508,15 +530,16 @@ feedinput<-reactive({
           } else{
         ats<-input$mult*(input$preg-input$postg)+input$konst
         breaks<- ggplot(rv$dt_ra,aes(x=as.factor(breaks_d),y=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)))+
-            geom_point(size=3,position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
-            geom_linerange(aes(ymin=0,x=as.factor(breaks_d),ymax=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)),position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
-            labs(x="Tage pro Portion", y="Portionsfläche ha",color="Szenario",title = "Benötigte Weidefläche für die gesamte Herde für unterschiedliche Besatzzeiten")+
-            theme_bw()+
-            theme(text=element_text(size = 18,family = "Arial"),
-                  axis.text = element_text(size = 18),
-                  legend.text = element_text(size = 18))+
-            guides(color = guide_legend(override.aes = list(size = 4)))+
-            scale_color_manual(labels=unique(rv$dt_ra$sz),values=paletteer::paletteer_d("awtools::a_palette"))
+                        geom_point(size=3,position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
+                        geom_linerange(aes(ymin=0,x=as.factor(breaks_d),ymax=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)),position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
+                        labs(x="Tage pro Portion", y="Portionsfläche ha",color="Szenario",title = "Benötigte Weidefläche für die gesamte Herde für unterschiedliche Besatzzeiten")+
+                        theme_bw()+
+                        theme(text=element_text(size = 18,family = "Arial"),
+                              axis.text = element_text(size = 18),
+                              legend.text = element_text(size = 18))+
+                        guides(color = guide_legend(override.aes = list(size = 4)))+
+                        scale_color_manual(labels=unique(rv$dt_ra$sz),values=paletteer::paletteer_d("awtools::a_palette"))+
+                        ylim(c(0,max(rv$dt_ra[,breaks_d*(fd_p_herd/ats)])+2))
           breaks
         }
     }
