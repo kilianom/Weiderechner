@@ -33,7 +33,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
   titlePanel(
              fluidRow(
     column(width = 2,"Weiderechner"),
-    column(width= 3,actionButton("help1","Information", onclick ="window.open('/helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))),
+    column(width= 3,actionButton("help1","Information", onclick ="window.open(' helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))),
     windowTitle = "Weiderechner" ),
              fluidRow(
            column(width =11,
@@ -208,7 +208,7 @@ server <- function(input, output,session) {
     footer = tagList(modalButton("Verstanden"))))
   })
   ####helpers####
-  shinyhelper::observe_helpers(help_dir = "helper")
+ # shinyhelper::observe_helpers(help_dir = "helper")
   ####reactive values####
   rv<-reactiveValues(dt_ra=NULL,dt_input=NULL,dt_calc=NULL,dt_feed=NULL)
   
