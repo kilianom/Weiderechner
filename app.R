@@ -138,12 +138,12 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
       ),
      fluidRow(column(width = 12,offset = 1,
      h2("Eingaben"),
+     p("Angaben zur Fütterung in kg TM /Kuh und Tag"),
      br(),
     
     tableOutput('inputdata')
                    )))
      
-      
       )
      ),
 
@@ -177,7 +177,9 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
             p("Der Multiplikator wird mit der komprimierten Aufwuchshöhe (cm) multipliziert und die Konstante wird nach Vorzeichen addiert.
               Die eingestellten Werte sind aus dem MuD Projekt entstanden und sollten nur verändert werden,
               wenn eine betriebsspezifische Umrechnungsformel existiert.")
-            ,width=12))),
+              )
+            )
+            ,width=9),
      
                   )
                 )
@@ -426,8 +428,7 @@ feedinput<-reactive({
   })
   
   observeEvent(input$save,{
-    print(bsdt())
-    
+
     if(unique(bsdt()$sz %in% unique(rv$dt_ra$sz))){
       shinyalert::shinyalert("Eingabefehler","Bitte einen eindeutigen Szenarionamen eingeben",type = "warning")
     } else{
