@@ -148,7 +148,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
      ),
 
    tabPanel(title = h4("Einteilung Parzellen und Portionen"),
-     fluidRow(
+     box(width = 12,
        shinyjs::hidden(
          div(id = "hiddenbox2",
              box(
@@ -163,9 +163,9 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                    href = "https://raumberg-gumpenstein.at/jdownloads/Tagungen/Viehwirtschaftstagung/Viehwirtschaftstagung%202015/1v_2015_steinwidder_haeusler.pdf",target="_blank"),
                  " zu finden.")),
                
-             box(
-      plotOutput("breaks"),
-      width = 12),
+             fluidRow(column(width = 8,offset = 2,
+      plotOutput("breaks")
+      )),
       box(actionButton("CSHTS","Formel Rising Plate Meter",icon=icon("chevron-down")),
       shinyjs::hidden(
         div(id = "hiddenbox3",
