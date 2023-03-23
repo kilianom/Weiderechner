@@ -60,7 +60,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                               numericInput("ncow","Kuhanzahl",min = 1,max=2000,value = 90),
                               selectInput("br","Rasse",choices = c("milchbetont"="milchbetont","zweinutzung"="zweinutzung")),
                               sliderInput("lwt","Kuhgewicht kg", min = 450,max =800,value = 650),
-                              sliderInput("m_y","Milchleistung kg",min=5,max=45,value=24),
+                              sliderInput("m_y","Milchleistung kg",min=5,max=45,value=22),
                               sliderInput("m_p","Protein %",min = 2.8,max = 6,value = 3.4,step = 0.1),
                               sliderInput("m_f","Fett %",min = 2.8,max=6,value = 4,step = 0.1),
                               sliderInput("dim","Laktationstag",min=5,max =330,value = 150),
@@ -85,7 +85,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                               hr(style = "border-top: 1px solid #000000;"),
                               br(), 
                               h4("Inhaltsstoffe Weidefutter"),
-                              sliderInput("pqual","Energiegehalt MJ NEL /kg TS",min = 4.5,max=7.5,value=6.5,step = 0.1),
+                              sliderInput("pqual","Energiegehalt MJ NEL /kg TS",min = 4.5,max=7.5,value=6.6,step = 0.1),
                               sliderInput("pXP","XP g/kg TS",min = 100,max=300,value=200,step = 1),
                               sliderInput("pNDF","NDF g/kg TS",min = 200,max=600,value=387,step = 1),
                               sliderInput("pADF","ADF g/kg TS",min = 100,max=500,value=261,step = 1),
@@ -95,7 +95,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                
                      h4("Benennung Szenario"),
                      textInput("sz","",value = "Standardszenario"),
-                     actionButton("save","Szenario hinzufügen"),
+                     actionButton("save","Szenario hinzufügen",style="background-color: #69b62d;border-color: #69b62d;font-weight: bold"),
                      conditionalPanel( condition = "output.nrows",
                                        h4("Szenarien entfernen")),
                      conditionalPanel( condition = "output.nrows",
@@ -147,21 +147,18 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
       )
      ),
 
-   tabPanel(title = h4("Einteilung Parzellen und Portionen"),
+   tabPanel(title = h4("Parzellengröße"),
      box(width = 12,
        shinyjs::hidden(
          div(id = "hiddenbox2",
-             box(
+             box(width = 8,
                h3("Weideparameter"),
                splitLayout(
                numericInput("preg","Weidereife Aufwuchshöhe in cm (komprimiert) ",min = 6,max=15,value = 10),
                numericInput("postg","Weiderest Aufwuchshöhe in cm (komprimiert) ",min = 3,max = 6,value = 5),
                ),
                p("Die Angaben entsprechen der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
-                  Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind bei ",
-                 a("Raumberg Gumpenstein",
-                   href = "https://raumberg-gumpenstein.at/jdownloads/Tagungen/Viehwirtschaftstagung/Viehwirtschaftstagung%202015/1v_2015_steinwidder_haeusler.pdf",target="_blank"),
-                 " zu finden.")),
+                  Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind bei LINK LEITFADEN zu finden.")),
                
              fluidRow(column(width = 8,offset = 2,
       plotOutput("breaks")
@@ -398,7 +395,7 @@ feedinput<-reactive({
             NDF_GF=dt_feed_t[art=="Grundfutter",sum(TS*NDF)])]
     dt[,c("ADF","NDF","NFC","NDF_GF"):=lapply(.SD,function(x)x/dmi),.SDcols=c("ADF","NDF","NFC","NDF_GF")]
     dt[,fibre_pr:=ifelse(NDF>=t_NDF & ADF>=t_ADF & NFC<=t_NFC & NDF_GF>=t_GFNDF,"ausreichend","nicht ausreichend")]# mehrstufig evaluieren, GF =pasturebased+high conc---?
-    dt[,e_req:=ecm*3.3+input$lwt^0.75*0.293]
+    dt[,e_req:=ecm*3.3+input$lwt^0.75*0.293+0.15*(dmi_p/dmi)*input$lwt^0.75*0.293]
     dt[,e_prov:=dt_feed_t[,sum(TS*NEL)]]
     dt[,fd_p_herd:=dmi_p*input$ncow]
     dt[,a_TS:=input$mult*(input$preg-input$postg)+input$konst]
@@ -467,7 +464,9 @@ feedinput<-reactive({
                 colnames(calc)<-c(names(input_params[input_params %in% colnames(calc)]),"Energiebilanz")
                 setcolorder(calc,c("Szenario","ECM","Futteraufnahme","benötigte Futteraufnahme Weide","Herdenbedarf Weide kg TM",
                                    "Energiebedarf","Energieangebot","Energiebilanz"))
-                calc<-DT::datatable(calc,filter = "none",rownames = F,
+                calc<-DT::datatable(calc,filter = "none",rownames = F,escape = F,
+                                    colnames = c("Szenario","ECM","Futter-<br/>aufnahme","Kuhbedarf<br/>Weide <br/>kg TM","Herdenbedarf<br/>Weide<br/>kg TM",
+                                                                                   "Energie-<br/>bedarf<br/>Kuh","Energie-<br/>angebot<br/>Kuh","Energie-<br/>bilanz<br/>Kuh","NDF g/kg TM","ADF g/kg TM","NFC g/kg TM","NDF g/kg TM Grund-<br/>futter","Faser-<br/>versorgung"),
                               options = list(dom='t',scrollX=T,scrollCollapse=T,language = list(zeroRecords = "Keine Szenarien vorhanden")))
                 calc<-DT::formatStyle(calc,columns=c("Energiebilanz"),color = DT::styleInterval(cuts=0,c("red","black")),fontWeight = "bold")
                 calc<-DT::formatStyle(calc,columns=c("Faserversorgung"),color = DT::styleEqual("nicht ausreichend","red"),fontWeight = "bold")
@@ -527,7 +526,7 @@ feedinput<-reactive({
       return(NULL)}
     else{
         if(input$preg<=input$postg){
-          shinyalert::shinyalert("Aufwuchshöhe","Die Aufwuchshöhe zu Beweidungshöhe ist geringer als der Weiderest. Bitte anpassen!",type = "warning")
+          shinyalert::shinyalert("Aufwuchshöhe","Die Aufwuchshöhe zu Beweidungsbeginn ist geringer als der Weiderest. Bitte anpassen!",type = "warning")
           } else{
         ats<-input$mult*(input$preg-input$postg)+input$konst
         breaks<- ggplot(rv$dt_ra,aes(x=as.factor(breaks_d),y=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)))+
