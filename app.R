@@ -33,7 +33,17 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
   titlePanel(
              fluidRow(
     column(width = 2,"Weiderechner"),
-    column(width= 3,actionButton("help1","Information", onclick ="window.open(' helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")))),
+    column(width= 3,actionButton("help1","Information", onclick ="window.open(' helper/Manual_Weiderechner.html', '_blank')",icon = icon("question"))),
+    # column(width=12,offset = 11,
+    #        tags$a(href="https://www.mud-tierschutz.de/mud-tierschutz/wissen-dialog-praxis/milchkuehe/weidehaltung-von-milchkuehen",target="blank",
+    #        tags$style(".topimg {
+    #                         margin-left:-100px;
+    #                         margin-right:0px;
+    #                         margin-top:-50px;
+    #                       }"),
+    #        div(class="topimg",img(src='BLElogo.png', align = "top",width="10%")),
+    #        ))
+    ),
     windowTitle = "Weiderechner" ),
              fluidRow(
            column(width =11,
@@ -49,11 +59,10 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                     # shinybrowser::detect(),
                     fluidRow( 
                      icon("cow","fa-2x"),
-                     wellPanel(
-                       style="background-color: #69b62d;padding-left: 0px",
+                    
                     actionButton("toggle_herd","Eingabe Herde",icon=icon("chevron-down"),
-                                 style="background-color: #69b62d;border-color: #69b62d;font-weight: bold")
-                              ),
+                                 style="background-color: #69b62d;border-color: #69b62d;font-weight: bold;width: 100%;padding-right:90% ;margin: auto"),
+                              
                     shinyjs::hidden(
                       div(id="herd_sidebar",
                       h3("Herde"),
@@ -66,13 +75,13 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                               sliderInput("dim","Laktationstag",min=5,max =330,value = 150),
                               sliderInput("n_lac","Laktationszahl",min = 1,max=10,value = 2)
                      ) )),
+                    br(),
                     fluidRow(
                     icon("seedling","fa-2x"),
-                    wellPanel(
-                      style="background-color: #69b62d;padding-left: 0px",
+                   
                     actionButton("toggle_feed",label="Fütterung",icon=icon("chevron-down"),
-                                 style="background-color: #69b62d;border-color: #69b62d;font-weight: bold")
-                  ),
+                                 style="background-color: #69b62d;border-color: #69b62d;font-weight: bold;width:100%; padding-right: 90%;margin: auto"),
+                  
                   shinyjs::hidden(
                     div(id="feed_sidebar",
                       h3("Fütterung "),
@@ -84,6 +93,8 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                               br(),
                               hr(style = "border-top: 1px solid #000000;"),
                               br(), 
+                              h4("Weidedauer"),
+                              sliderInput("dgrazh","Weidedauer h/Tag",min = 1,max=24,value=16,step = 0.5),
                               h4("Inhaltsstoffe Weidefutter"),
                               sliderInput("pqual","Energiegehalt MJ NEL /kg TS",min = 4.5,max=7.5,value=6.6,step = 0.1),
                               sliderInput("pXP","XP g/kg TS",min = 100,max=300,value=200,step = 1),
@@ -375,7 +386,7 @@ feedinput<-reactive({
    }
    dt<-data.table(fq_f=ifelse(dt_feed[,sum(TS)]<20,
                                ((20-dt_feed[,sum(TS)])*input$pqual+dt_feed[art=="Grundfutter",sum(TS*NEL)])/(20-dt_feed[art=="Kraftfutter",sum(TS)]),
-                               dt_feed[art=="Grundfutter",sum(TS)*(sum(NEL)/sum(TS))]),
+                               dt_feed[art=="Grundfutter",sum(TS*NEL)/sum(TS)]),
                    ecm=input$m_y*(0.38*input$m_f+0.21*input$m_p+1.05)/3.28,
                    cm=dt_feed[art=="Kraftfutter",sum(TS)],
                    fm=dt_feed[art=="Grundfutter",sum(TS)]
@@ -384,6 +395,7 @@ feedinput<-reactive({
 
     dt[,dmi:=GRUBER_DMI(n_lac=input$n_lac,br=input$br,dim=input$dim,lwt=input$lwt,ecm=ecm,cm=cm,fq_f=fq_f)]
     dt[,dmi_p:=dmi-(cm+fm)]
+    print(dt)
     dt_feed_t<-rbind(dt_feed,
                      data.table(FMuser="WF",art="Grundfutter",TS=dt$dmi_p,NEL=input$pqual,XP=input$pXP,NDF=input$pNDF,ADF=input$pADF,NFC=input$pNFC,FMcount=0))
 
@@ -398,6 +410,9 @@ feedinput<-reactive({
     dt[,e_req:=ecm*3.3+input$lwt^0.75*0.293+0.15*(dmi_p/dmi)*input$lwt^0.75*0.293]
     dt[,e_prov:=dt_feed_t[,sum(TS*NEL)]]
     dt[,fd_p_herd:=dmi_p*input$ncow]
+    dt[,p_dmi_h:=dmi_p/input$dgrazh]
+    dt[,p_class:=ifelse(dmi_p/dmi>=0.85,"Vollweide",
+                        ifelse(dmi_p/dmi<0.3,"Auslaufweide","Teilweide"))]
     dt[,a_TS:=input$mult*(input$preg-input$postg)+input$konst]
     dt[,':='(sz=input$sz,n_sz=0,n_cow=input$ncow,m_y=input$m_y,m_f=input$m_f,m_p=input$m_p,br=input$br,dim=input$dim,n_lac=input$n_lac,lwt=input$lwt)]
     dt
@@ -429,13 +444,13 @@ feedinput<-reactive({
     if(unique(bsdt()$sz %in% unique(rv$dt_ra$sz))){
       shinyalert::shinyalert("Eingabefehler","Bitte einen eindeutigen Szenarionamen eingeben",type = "warning")
     } else{
-      print(colnames(dt()))
       input_params<-colnames(dt())
       names(input_params)<-c("Energie Grundfutter MJ NEL/kg TM","ECM","Kraftfuttermenge","Grundfuttermenge","Futteraufnahme","benötigte Futteraufnahme Weide",
                              "NDF g/kg TM","ADF g/kg TM","NFC g/kg TM","NDF GF g/kg TM","Faserversorgung","Energiebedarf","Energieangebot",
-                             "Herdenbedarf Weide kg TM","verfügbares Weidefutter kg/TM ha","Szenario","Nr Szenario","Kuhzahl",
+                             "Herdenbedarf Weide kg TM","stündliche Futteraufnahme kg TM/ha","Weideart","verfügbares Weidefutter kg TM/ ha","Szenario","Nr Szenario","Kuhzahl",
                              "Milchleistung","Fett %", "Eiweiß %","Rasse","Laktationstag","Laktationszahl","Lebendgewicht" )
-      if(is.null(rv$dt_ra)){
+     
+       if(is.null(rv$dt_ra)){
         rv$dt_ra<-bsdt()
         rv$dt_ra[,n_sz:=1]
       }  else{
@@ -462,21 +477,26 @@ feedinput<-reactive({
                 calc[,c("fq_f","n_sz")]<-NULL
                 calc[,colnames(calc)[unlist(lapply(calc,is.numeric))]:=lapply(.SD,round,1),.SDcols=colnames(calc)[unlist(lapply(calc,is.numeric))]]
                 colnames(calc)<-c(names(input_params[input_params %in% colnames(calc)]),"Energiebilanz")
-                setcolorder(calc,c("Szenario","ECM","Futteraufnahme","benötigte Futteraufnahme Weide","Herdenbedarf Weide kg TM",
+                print(calc)
+                setcolorder(calc,c("Szenario","Weideart","ECM","Futteraufnahme","stündliche Futteraufnahme kg TM/ha","benötigte Futteraufnahme Weide","Herdenbedarf Weide kg TM",
                                    "Energiebedarf","Energieangebot","Energiebilanz"))
                 calc<-DT::datatable(calc,filter = "none",rownames = F,escape = F,
-                                    colnames = c("Szenario","ECM","Futter-<br/>aufnahme","Kuhbedarf<br/>Weide <br/>kg TM","Herdenbedarf<br/>Weide<br/>kg TM",
-                                                                                   "Energie-<br/>bedarf<br/>Kuh","Energie-<br/>angebot<br/>Kuh","Energie-<br/>bilanz<br/>Kuh","NDF g/kg TM","ADF g/kg TM","NFC g/kg TM","NDF g/kg TM Grund-<br/>futter","Faser-<br/>versorgung"),
+                                    colnames = c("Szenario","Weideart","ECM","Futter-<br/>aufnahme","stündliche Futteraufnahme kg TM/ha","Kuhbedarf<br/>Weide <br/>kg TM","Herdenbedarf<br/>Weide<br/>kg TM",
+                                                  "Energie-<br/>bedarf<br/>Kuh","Energie-<br/>angebot<br/>Kuh","Energie-<br/>bilanz<br/>Kuh",
+                                                 "NDF g/kg TM","ADF g/kg TM","NFC g/kg TM","NDF g/kg TM Grund-<br/>futter","Faser-<br/>versorgung"),
                               options = list(dom='t',scrollX=T,scrollCollapse=T,language = list(zeroRecords = "Keine Szenarien vorhanden")))
                 calc<-DT::formatStyle(calc,columns=c("Energiebilanz"),color = DT::styleInterval(cuts=0,c("red","black")),fontWeight = "bold")
                 calc<-DT::formatStyle(calc,columns=c("Faserversorgung"),color = DT::styleEqual("nicht ausreichend","red"),fontWeight = "bold")
-               
+               print(calc)
                calc
           }
       })
       
       if(rv$dt_calc[max(n_sz),e_prov-e_req]<0  ){
         shinyalert::shinyalert("Energieversorgung!!",paste0("Negative Energiebilanz in: \n ",paste(rv$dt_calc[max(n_sz),sz]), " \n Fütterung sollte angepasst werden!"))
+      }
+      if(rv$dt_calc[max(n_sz),fibre_pr]=="nicht ausreichend"  ){
+        shinyalert::shinyalert("Faserversorgung!!",paste0("Faserversorgung mangelhaft in: \n ",paste(rv$dt_calc[max(n_sz),sz]), " \n Fütterung sollte angepasst werden!"))
       }
       output$block<-renderPlot({
         if (is.null(rv$dt_ra)){
