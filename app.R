@@ -29,11 +29,13 @@ getwd()
 ui <-fluidPage(theme = theme_a,tags$head(tags$style('
    body {
       font-family: Arial}')),
-               
+  fluidRow(column(width = 12,offset = 11 ,tags$a("Datenschutzerklärung", href="datenschutz.html",target="_blank",style = "font-size: 80%;color: #000000 ;margin-top=0px;"))),        
   titlePanel(
+    
              fluidRow(
     column(width = 2,"Weiderechner"),
     column(width= 3,actionButton("help1","Information", onclick ="window.open(' helper/Manual_Weiderechner.html', '_blank')",icon = icon("question"))),
+          
     # column(width=12,offset = 11,
     #        tags$a(href="https://www.mud-tierschutz.de/mud-tierschutz/wissen-dialog-praxis/milchkuehe/weidehaltung-von-milchkuehen",target="blank",
     #        tags$style(".topimg {
@@ -44,8 +46,10 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
     #        div(class="topimg",img(src='BLElogo.png', align = "top",width="10%")),
     #        ))
     ),
+
     windowTitle = "Weiderechner" ),
-             fluidRow(
+            
+ fluidRow(
            column(width =11,
                   actionButton("toggle","Eingabebereich",icon = icon("bars"))),
            
@@ -120,8 +124,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                      conditionalPanel( condition = "output.nrows",
                                        actionButton("reset","Alle entfernen")))
                      
-                     )
-                    
+                     ),
               
                                  )
   ),
@@ -196,7 +199,9 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
           )
         )
       )
-    )
+    ),
+  hr(),
+
   )
 
 ###################### Define server logic ################
