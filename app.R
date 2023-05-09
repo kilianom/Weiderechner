@@ -7,7 +7,7 @@ library(bslib)
 theme_a<-bs_theme(
   version = 3,
   bootswatch = "readable")
-
+#xml2::write_html(rvest::html_node(xml2::read_html("www/help_Weiderechner.html"), "body"), file = "help_body.html")
 gfm<-fread("FM.csv")
 #set thresholds for fibre
 t_NDF<-350
@@ -22,20 +22,29 @@ GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
   DMI<-DMI*0.93+0.47
   DMI
 }
-list.files("www/helper/",full.names = T)
 
-getwd()
+
 ######################ui#################################################################################
 ui <-fluidPage(theme = theme_a,tags$head(tags$style('
    body {
       font-family: Arial}')),
-  fluidRow(column(width = 12,offset = 11 ,tags$a("Datenschutzerklärung", href="datenschutz.html",target="_blank",style = "font-size: 80%;color: #000000 ;margin-top=0px;"))),        
-  titlePanel(
-    
+  #fluidRow(column(width = 12,offset = 11 ,tags$a("Datenschutzerklärung", href="datenschutz.html",target="_blank",style = "font-size: 80%;color: #000000 ;margin-top=0px;"))),        
+
              fluidRow(
-    column(width = 2,"Weiderechner"),
-    column(width= 3,actionButton("help1","Information", onclick ="window.open(' helper/Manual_Weiderechner.html', '_blank')",icon = icon("question"))),
-          
+               column(width = 1,
+                      tags$style(".topimg {
+                            margin-left:0px;
+                            margin-top:5%;
+                          }"),
+                      div(class="topimg",img(src='Wbutton40.png', align = "left",width="50%"))
+               ),
+    column(width = 1,div(h2("Weiderechner")),style="margin-top: 1%; align: left; margin-left: -3%; "),
+   
+    column(width= 1,offset = 9,div(actionButton("help1","Information", onclick ="window.open(' helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")),
+                        ),style="float:right; align: right;margin-top: 1%;margin-right:-1%"),
+   
+    ),
+
     # column(width=12,offset = 11,
     #        tags$a(href="https://www.mud-tierschutz.de/mud-tierschutz/wissen-dialog-praxis/milchkuehe/weidehaltung-von-milchkuehen",target="blank",
     #        tags$style(".topimg {
@@ -45,15 +54,17 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
     #                       }"),
     #        div(class="topimg",img(src='BLElogo.png', align = "top",width="10%")),
     #        ))
-    ),
-
-    windowTitle = "Weiderechner" ),
+    
+  titlePanel("", windowTitle = "Weiderechner" ),
             
  fluidRow(
-           column(width =11,
+           column(width =3,
                   actionButton("toggle","Eingabebereich",icon = icon("bars"))),
-           
-                  ),
+           column(width =1,
+                  div(     style="float:right",
+                   actionButton("help2","",icon = icon("question"))))
+ 
+),
 
   sidebarLayout(
                 div(id="sidebar",
@@ -172,7 +183,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                numericInput("postg","Weiderest Aufwuchshöhe in cm (komprimiert) ",min = 3,max = 6,value = 5),
                ),
                p("Die Angaben entsprechen der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
-                  Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind bei LINK LEITFADEN zu finden.")),
+                  Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind", a(href="https://www.gruenlandzentrum.org/Weideleitfaden/#52_Aufwuchshoehenmessung", target="_blank", "hier"), "zu finden.")),
                
              fluidRow(column(width = 8,offset = 2,
       plotOutput("breaks")
@@ -201,29 +212,26 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
       )
     ),
   hr(),
-
+ fluidRow(column(width = 12,offset = 11 ,tags$a("Datenschutzerklärung", href="datenschutz.html",target="_blank",style = "font-size: 80%;color: #000000 ;margin-top=0px;"))),        
+ 
   )
 
 ###################### Define server logic ################
 server <- function(input, output,session) {
   observe({
-  showModal(modalDialog(size = 'l',##put that in md 
+  showModal(modalDialog(size = 'l',
     title = "Anleitung",
-    fluidRow(
-   column(width = 6,
-    img(src='sidebar_closed.png', align = "left",heigth="75%",width="75%")),
-   column(width = 6,
-         div(HTML("Die Weiderechner Anwendung sollte zur fehlerfreien Darstellung an Desktops PCs oder Tablets mit ausreichender Größe genutzt werden.
-                Im Eingabebereich links werden Daten zur Herde [<em>Eingabe Herde</em>] und zur Fütterung [<em>Eingabe Fütterung</em>] eingegeben. 
-                Nach Abschluss der Eingabe wird ein Name für das Szenario [<em>Benennung Szenario</em>] vergeben (z.B. 'keine Zufütterung') und das Szenario wird hinzugefügt [<em>Szenario hinzufügen</em>].
-                Im Bereich rechts werden nun Informationen zur Versorgung der Kühe und zum Bedarf der Weidefläche gezeigt [<em>Weidefläche und Versorgung</em>]. Außerdem können unterschiedliche Zuteilungen für
-                das Weidemanagement betrachtet werden [<em>Einteilung Parzellen und Portionen</em>]. Es können weitere Szenarien hinzugefügt werden, um unterschiedliche Optionen zu vergleichen. 
-                Im Bereich  [<em>Einteilung Parzellen und Portionen</em>] können unterschiedliche Weideaufwuchshöhen und Weidereste zur Planung der Parzellengröße eingegeben werden.
-                Hierfür sollten Anwender:innen sich mit der Aufwuchsmessung mit dem Rising Plate Meter und den Grundlagen des Weidemanagements vertraut machen 'LINK LEITFADEN'")))),
+          includeHTML("www/help_body.html"),
     footer = tagList(modalButton("Verstanden"))))
   })
-  ####helpers####
- # shinyhelper::observe_helpers(help_dir = "helper")
+
+  observeEvent(input$help2,{
+    showModal(modalDialog(size = 'l',
+                          title = "Anleitung",
+                            includeHTML("www/help_body.html"),
+                          footer = tagList(modalButton("Verstanden"))))
+  })
+  
   ####reactive values####
   rv<-reactiveValues(dt_ra=NULL,dt_input=NULL,dt_calc=NULL,dt_feed=NULL)
   
