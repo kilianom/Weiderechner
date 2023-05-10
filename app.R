@@ -28,7 +28,6 @@ GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
 ui <-fluidPage(theme = theme_a,tags$head(tags$style('
    body {
       font-family: Arial}')),
-  #fluidRow(column(width = 12,offset = 11 ,tags$a("Datenschutzerklärung", href="datenschutz.html",target="_blank",style = "font-size: 80%;color: #000000 ;margin-top=0px;"))),        
 
              fluidRow(
                column(width = 1,
@@ -39,10 +38,10 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                       div(class="topimg",img(src='Wbutton40.png', align = "left",width="50%"))
                ),
     column(width = 1,div(h2("Weiderechner")),style="margin-top: 1%; align: left; margin-left: -3%; "),
-   
+
     column(width= 1,offset = 9,div(actionButton("help1","Information", onclick ="window.open(' helper/Manual_Weiderechner.html', '_blank')",icon = icon("question")),
-                        ),style="float:right; align: right;margin-top: 1%;margin-right:-1%"),
-   
+                        ),style=" align: right;margin-top: 2%;margin-right:-10%"),
+
     ),
 
     # column(width=12,offset = 11,
@@ -139,7 +138,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
               
                                  )
   ),
-  mainPanel(id="mainpanel",
+  mainPanel(id="mainpanel",width = 8,
    
     fluidRow(
       tabsetPanel(
@@ -152,8 +151,8 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
       br(),
       fluidRow(
       div(DT::dataTableOutput('table'),style="font-size:90%")),
-      fluidRow(
-      hr(style = "border-top: 1px solid #000000;")),
+       fluidRow(
+       hr(style = "border-top: 1px solid #000000;")),
       br()
       ),
       box(width = 12,
@@ -161,14 +160,15 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
        plotOutput("block"))
       )
       ),
-     fluidRow(column(width = 12,offset = 1,
+     fluidRow(column(width = 9,offset = 1,
      h2("Eingaben"),
      p("Angaben zur Fütterung in kg TM /Kuh und Tag"),
      br(),
-    
-    tableOutput('inputdata')
-                   )))
-     
+
+    #tableOutput('inputdata')
+                   ))
+    )
+
       )
      ),
 
@@ -184,7 +184,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
                ),
                p("Die Angaben entsprechen der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
                   Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind", a(href="https://www.gruenlandzentrum.org/Weideleitfaden/#52_Aufwuchshoehenmessung", target="_blank", "hier"), "zu finden.")),
-               
+
              fluidRow(column(width = 8,offset = 2,
       plotOutput("breaks")
       )),
@@ -202,7 +202,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
               )
             )
             ,width=9),
-     
+
                   )
                 )
               )
@@ -211,8 +211,8 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
         )
       )
     ),
-  hr(),
- fluidRow(column(width = 12,offset = 11 ,tags$a("Datenschutzerklärung", href="datenschutz.html",target="_blank",style = "font-size: 80%;color: #000000 ;margin-top=0px;"))),        
+ hr(),
+ fluidRow(column(width = 1,offset = 11 ,tags$a("Datenschutzerklärung", href="datenschutz.html",target="_blank",style = "font-size: 80%;color: #000000 ;margin-top=0px;"))),        
  
   )
 
@@ -311,8 +311,6 @@ observe({
   }
   })
 
-
-  
   observeEvent(input$FMplus,{
     
     showModal(modalDialog(
@@ -494,7 +492,7 @@ feedinput<-reactive({
                 setcolorder(calc,c("Szenario","Weideart","ECM","Futteraufnahme","stündliche Futteraufnahme kg TM/ha","benötigte Futteraufnahme Weide","Herdenbedarf Weide kg TM",
                                    "Energiebedarf","Energieangebot","Energiebilanz"))
                 calc<-DT::datatable(calc,filter = "none",rownames = F,escape = F,
-                                    colnames = c("Szenario","Weideart","ECM","Futter-<br/>aufnahme","stündliche Futteraufnahme kg TM/ha","Kuhbedarf<br/>Weide <br/>kg TM","Herdenbedarf<br/>Weide<br/>kg TM",
+                                    colnames = c("Szenario","Weideart","ECM","Futter-<br/>aufnahme","stündliche<br/>Futteraufnahme kg TM/ha","Kuhbedarf<br/>Weide <br/>kg TM","Herdenbedarf<br/>Weide<br/>kg TM",
                                                   "Energie-<br/>bedarf<br/>Kuh","Energie-<br/>angebot<br/>Kuh","Energie-<br/>bilanz<br/>Kuh",
                                                  "NDF g/kg TM","ADF g/kg TM","NFC g/kg TM","NDF g/kg TM Grund-<br/>futter","Faser-<br/>versorgung"),
                               options = list(dom='t',scrollX=T,scrollCollapse=T,language = list(zeroRecords = "Keine Szenarien vorhanden")))
