@@ -165,7 +165,7 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
      p("Angaben zur Fütterung in kg TM /Kuh und Tag"),
      br(),
 
-    #tableOutput('inputdata')
+    tableOutput('inputdata')
                    ))
     )
 
