@@ -7,7 +7,7 @@ library(bslib)
 theme_a<-bs_theme(
   version = 3,
   bootswatch = "readable")
-#xml2::write_html(rvest::html_node(xml2::read_html("www/help_Weiderechner.html"), "body"), file = "help_body.html")
+#xml2::write_html(rvest::html_node(xml2::read_html("www/help_Weiderechner.html"), "body"), file = "www/help_body.html")
 gfm<-fread("FM.csv")
 #set thresholds for fibre
 t_NDF<-350
@@ -178,14 +178,18 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
      box(width = 12,
        shinyjs::hidden(
          div(id = "hiddenbox2",
-             box(width = 8,
+             box(width = 10,
                h3("Weideparameter"),
+               br(),
+               wellPanel(h4("Aufwuchshöhe in cm (komprimiert)"),
                splitLayout(
-               numericInput("preg","Weidereife Aufwuchshöhe in cm (komprimiert) ",min = 6,max=15,value = 10),
-               numericInput("postg","Weiderest Aufwuchshöhe in cm (komprimiert) ",min = 3,max = 6,value = 5),
+               numericInput("preg",label ="Weidereife",min = 6,max=15,value = 10),
+               numericInput("postg","Weiderest",min = 3,max = 6,value = 5),
                ),
                p("Die Angaben entsprechen der komprimierten Aufwuchshöhe gemessen mit einem Rising Plate Meter.
-                  Umrechnungsmethoden von anderen Methoden der Aufwuchshöhenmessung sind", a(href="https://www.gruenlandzentrum.org/Weideleitfaden/#52_Aufwuchshoehenmessung", target="_blank", "hier"), "zu finden.")),
+                  Umrechnungen von anderen Methoden der Aufwuchshöhenmessung sind", a(href="https://www.gruenlandzentrum.org/Weideleitfaden/#52_Aufwuchshoehenmessung", target="_blank", "hier"), "zu finden.")
+               )
+               ),
 
              fluidRow(column(width = 8,offset = 2,
       plotOutput("breaks")
@@ -491,7 +495,7 @@ feedinput<-reactive({
                 setcolorder(calc,c("Szenario","Weideart","ECM","Futteraufnahme","stündliche Futteraufnahme kg TM/ha","benötigte Futteraufnahme Weide","Herdenbedarf Weide kg TM",
                                    "Energiebedarf","Energieangebot","Energiebilanz"))
                 calc<-DT::datatable(calc,filter = "none",rownames = F,escape = F,
-                                    colnames = c("Szenario","Weideart","ECM","Futter-<br/>aufnahme","stündliche<br/>Futteraufnahme kg TM/ha","Kuhbedarf<br/>Weide <br/>kg TM","Herdenbedarf<br/>Weide<br/>kg TM",
+                                    colnames = c("Szenario","Weideart","Milch<br/>kg ECM/Kuh","Futter-<br/>aufnahme kg TM/Kuh","stündliche<br/>Futteraufnahme kg TM/Kuh","Bedarf<br/>Weide <br/>kg TM/Kuh","Herdenbedarf<br/>Weide<br/>kg TM",
                                                   "Energie-<br/>bedarf<br/>Kuh","Energie-<br/>angebot<br/>Kuh","Energie-<br/>bilanz<br/>Kuh",
                                                  "NDF g/kg TM","ADF g/kg TM","NFC g/kg TM","NDF g/kg TM Grund-<br/>futter","Faser-<br/>versorgung"),
                               options = list(dom='t',scrollX=T,scrollCollapse=T,language = list(zeroRecords = "Keine Szenarien vorhanden")))
@@ -503,21 +507,21 @@ feedinput<-reactive({
       })
       
       if(rv$dt_calc[max(n_sz),e_prov-e_req]<0  ){
-        shinyalert::shinyalert("Energieversorgung!!",paste0("Negative Energiebilanz in: \n ",paste(rv$dt_calc[max(n_sz),sz]), " \n Fütterung sollte angepasst werden!"))
+        shinyalert::shinyalert("Energieversorgung!",paste0("Negative Energiebilanz in: \n ",paste(rv$dt_calc[max(n_sz),sz]), " \n Fütterung sollte angepasst werden!"))
       }
       if(rv$dt_calc[max(n_sz),fibre_pr]=="nicht ausreichend"  ){
-        shinyalert::shinyalert("Faserversorgung!!",paste0("Faserversorgung mangelhaft in: \n ",paste(rv$dt_calc[max(n_sz),sz]), " \n Fütterung sollte angepasst werden!"))
+        shinyalert::shinyalert("Faserversorgung!",paste0("Faserversorgung mangelhaft in: \n ",paste(rv$dt_calc[max(n_sz),sz]), " \n Fütterung sollte angepasst werden!"))
       }
       if(nrow(rv$dt_calc)>3){
         shinyjs::disable("save")
-        shinyalert::shinyalert("Szenarienanzahl","Maximalanzahl Szenarien erreicht. Bitte einzelne oder mehrere Szenarien entfernen.",type = "warning")
+        shinyalert::shinyalert("Szenarienanzahl","Maximale Anzahl Szenarien erreicht. Bitte einzelne oder mehrere Szenarien entfernen.",type = "warning")
       }
       output$block<-renderPlot({
         if (is.null(rv$dt_ra)){
-          return(NULL)}else{
-            block<- ggplot(rv$dt_ra,aes(x=gr,y=g_block,color=as.factor(n_sz)))+
+          return(NULL)}
+        else{ block<- ggplot(rv$dt_ra,aes(x=gr,y=g_block,color=as.factor(n_sz)))+
                         geom_line(linewidth=1.4)+
-                        labs(x="Wachstumsrate kg TM pro Tag und Hektar", y="benötigte Gesamtweidefläche ha",color="Szenario",title = "Benötigte Gesamtweidefläche für die gesamte Herde in Abhängigkeit \n von täglichen Wachstumsraten des Bestandes")+
+                        labs(x="Wachstumsrate [kg TM/(Tag x ha)]", y="benötigte Gesamtweidefläche [ha]",color="Szenario",title = "Benötigte Gesamtweidefläche für die gesamte Herde in Abhängigkeit \n von Wachstumsraten des Bestandes")+
                         theme_bw()+
                         theme(text=element_text(size = 18,family = "Arial"),
                               axis.text = element_text(size = 18),
@@ -567,7 +571,7 @@ feedinput<-reactive({
         breaks<- ggplot(rv$dt_ra,aes(x=as.factor(breaks_d),y=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)))+
                         geom_point(size=3,position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
                         geom_linerange(aes(ymin=0,x=as.factor(breaks_d),ymax=breaks_d*(fd_p_herd/ats),color=as.factor(n_sz)),position = position_dodge(width = 1/length(unique(rv$dt_ra$n_sz))))+
-                        labs(x="Tage pro Portion", y="Portionsfläche ha",color="Szenario",title = "Benötigte Weidefläche für die gesamte Herde für unterschiedliche Besatzzeiten")+
+                        labs(x="Tage pro Portion", y="Portionsfläche [ha]",color="Szenario",title = "Benötigte Weidefläche für die gesamte Herde für unterschiedliche Besatzzeiten")+
                         theme_bw()+
                         theme(text=element_text(size = 18,family = "Arial"),
                               axis.text = element_text(size = 18),
