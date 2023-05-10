@@ -165,7 +165,9 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
      p("Angaben zur Fütterung in kg TM /Kuh und Tag"),
      br(),
 
-    tableOutput('inputdata')
+     DT::dataTableOutput('inputdata')
+     
+     
                    ))
     )
 
@@ -476,10 +478,7 @@ feedinput<-reactive({
         rv$dt_calc<-rbind(rv$dt_calc,dt())
         rv$dt_calc[n_sz==0,n_sz:=max(rv$dt_calc$n_sz)+1]
         setorder(rv$dt_calc,n_sz)}
-      if(nrow(rv$dt_calc)>3){
-        shinyjs::disable("save")
-        shinyalert::shinyalert("Szenarienanzahl","Maximalanzahl Szenarien erreicht. Bitte einzelne oder mehrere Szenarien entfernen.",type = "warning")
-      } 
+       
       output$table<-DT::renderDataTable({
         if (is.null(rv$dt_calc)){
             return(NULL)} else{
@@ -509,6 +508,10 @@ feedinput<-reactive({
       if(rv$dt_calc[max(n_sz),fibre_pr]=="nicht ausreichend"  ){
         shinyalert::shinyalert("Faserversorgung!!",paste0("Faserversorgung mangelhaft in: \n ",paste(rv$dt_calc[max(n_sz),sz]), " \n Fütterung sollte angepasst werden!"))
       }
+      if(nrow(rv$dt_calc)>3){
+        shinyjs::disable("save")
+        shinyalert::shinyalert("Szenarienanzahl","Maximalanzahl Szenarien erreicht. Bitte einzelne oder mehrere Szenarien entfernen.",type = "warning")
+      }
       output$block<-renderPlot({
         if (is.null(rv$dt_ra)){
           return(NULL)}else{
@@ -537,18 +540,19 @@ feedinput<-reactive({
       }
     
     
-    output$inputdata<-renderTable({
+      
+    output$inputdata<-DT::renderDataTable({
       if (is.null(rv$dt_input)){
         return(NULL)} else{
           in_t<-rv$dt_input[vars %in% c("fq","fm","cm","m_y","m_f","m_p","br","dim","n_lac","lwt","n_cow"),]
           in_t[,vars:=NULL]
+          in_t<-DT::datatable(in_t,filter = "none",rownames = F,escape = F,options = list(dom='t',scrollX=T,scrollCollapse=T,language = list(zeroRecords = "Keine Szenarien vorhanden")))
         
         }
      
     })
     }
-    ##reset feed inputs
-    #rv$dt_feed<-NULL
+  
     
   })
   
@@ -580,6 +584,8 @@ feedinput<-reactive({
     rv$dt_ra=NULL
     rv$dt_input=NULL
     rv$dt_calc=NULL
+    
+    shinyjs::enable("save")
   })
   
   output$nrows <- reactive({
