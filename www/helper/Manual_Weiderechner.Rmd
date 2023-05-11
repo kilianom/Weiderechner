@@ -1,7 +1,7 @@
 ---
 title: "Informationen Weiderechner"
-author: "Kilian Obermeyer"
-date: "2023-03-11"
+author: ""
+date: "09.05.2023"
 output:
   html_document:
     md_extensions: -autolink_bare_uris
@@ -9,31 +9,41 @@ output:
 
 
 ## Weiderechner allgemein
-Der Weiderechner stellt eine einfache Grundlage zur Weideplanung dar. Die Fütterung im Stall kann in Kombination mit der Weide betrachtet werden. Die Eingabe unterschiedlicher Szenarien ermöglicht den Vergleich zwischen Fütterungsstrategien. Die Ausgabe zeigt eine einfache Bewertung der Ration zur Überwachung der Versorgung der Kuh. Dabei wird die Energieversorgung und die Faserversorgung (NDF, ADF, NFC) berücksichtigt. Die Berechnung ersetzt keine Rationsplanung, da weitere wichtige Faktoren wie pysikalisch effektive NDF nicht berücksichtigt werden.
-Der Bedarf der Herde wird außerdem im Kontext der Stallfütterung auf die Weide übertragen. Die benötigte Gesamtweidefläche bei unterschiedlichen Wachstumsraten wird dafür ausgegeben. Auch hier lässt die Eingabe der unterschiedlichen Sznearien eine Planung für saisonale Veränderungen zu. Entsprechend kann bei unterschiedlicher Stallfütterung evaluiert werden ob bei unterschiedlichen Wachstumsraten ausreichend Weidefläche durch die betriebelichen Gegebenheiten vorliegt. 
-Im Leitfaden des Projekts finden sich weiterführende Informationen zur Fütterung, zum Bedarf der weidenden Kuh und zum Begriff Wachstumsrate. "LINKS EINFÜGEN".
+Der *Weiderechner* stellt eine einfache Grundlage zur Weideplanung dar. Die Fütterung im Stall kann in Kombination mit der Weide betrachtet werden. Die Eingabe unterschiedlicher Szenarien ermöglicht den Vergleich zwischen Fütterungsstrategien. Die Ausgabe zeigt eine einfache Bewertung der Ration zur Überwachung der Versorgung der Kuh. Dabei wird die <a href="https://www.gruenlandzentrum.org/Weideleitfaden/#3_Energieversorgung" target="_blank">Energieversorgung</a> und die <a href="https://www.gruenlandzentrum.org/Weideleitfaden/#22_Strukturwirksamkeit_und_Verdaulichkeit" target="_blank">Faserversorgung</a> (NDF, ADF, NFC) berücksichtigt. Die Berechnung ersetzt keine Rationsplanung, da weitere wichtige Faktoren wie pysikalisch effektive NDF nicht berücksichtigt werden.
+Der Bedarf der Herde wird außerdem im Kontext der Stallfütterung auf die Weide übertragen. Die benötigte Gesamtweidefläche bei unterschiedlichen  <a href="https://www.gruenlandzentrum.org/Weideleitfaden/#51_Berechnung_der_noetigen_Weideflaeche" target="_blank">Wachstumsraten</a> wird dafür ausgegeben. Auch hier lässt die Eingabe der unterschiedlichen Szenarien eine Planung für saisonale Veränderungen zu. Entsprechend kann bei unterschiedlicher Stallfütterung überprüft werden ob bei unterschiedlichen Wachstumsraten ausreichend Weidefläche durch die betrieblichen Gegebenheiten vorliegt. 
+Im <a href="https://www.gruenlandzentrum.org/Weideleitfaden/" target="_blank">Leitfaden</a> des MuD “Verbesserung des Tierwohls bei Weidehaltung von Milchkühen”  Projekts* finden sich weiterführende Informationen zur Fütterung, zum Bedarf der weidenden Kuh und zum Begriff Wachstumsrate.
 
 #### Hintergrund der Berechnungen
-Die Futteraufnahme der Kühe wird mit dem Modell von Gruber et al. 2004 geschätzt. Hierbei werden Leistungs-, Tier-, Laktations- und Futterparameter berücksichtigt. bei hohem Futterangebot im Stall kann die angebotene Futtermenge nach Abzug des Futterrests die Futteraufnahme überschreiten. Dies begründet sich durch das Modell. Für die Berechnung der Weidefläche wird dadurch ein Wert von 0 ha ausgegeben, es kann daher eine Auslauf- oder Joggingweide angenommen werden. Die Beurteilung der Futterinhaltsstoffe werden die üblichen Werte zum Energiebedarf angenommen. Für die Faserbewertung werden die Richtwerte für NDF >300 g/ kg TS, für ADF >200 g/ kg TS und NFC <400 g/ kg TS angenommen. Eine Anpassung für geringe NDF Werte im Grundfutter oder erhöhte NFC Werte wird nicht vorgenommen. 
-
+Die Futteraufnahme der Kühe wird mit dem Modell von Gruber et al. (2004) geschätzt. Hierbei werden Leistungs-, Tier-, Laktations- und Futterparameter berücksichtigt. Bei hohem Futterangebot im Stall kann die angebotene Futtermenge nach Abzug des Futterrests die berechnete Futteraufnahme überschreiten. Für Herden mit einer Futteraufnahme von mehr als 23 kg TM/ Kuh und Tag, ist der *Weiderechner* nur begrenzt sinnvoll.  Dies begründet sich durch das Modell. Für die Berechnung der Weidefläche wird dadurch ein Wert von 0 ha ausgegeben, es kann daher eine Auslauf- oder Joggingweide angenommen werden. Auch die Einteilung der <a href="https://www.gruenlandzentrum.org/Weideleitfaden/#1_Weidehaltung_und_Tierwohl_%E2%80%93_eine_Uebersicht" target="_blank"> Weideart</a> erfolgt anhand des Weidefutteranteils an der gesamten Futteraufnahme. Für die Beurteilung der Futterinhaltsstoffe werden die üblichen Werte zum Energiebedarf angenommen (Jeroch et al. 2022). Für die Beweidung werden Energiezuschläge von bis zu 15 % des Erhaltungsbedarfs angenommen (Dohme-Meier et al. 2014). Für die Faserbewertung werden die Richtwerte für NDF >350 g/ kg TM, für ADF >200 g/ kg TM, NFC <400 g/ kg TM und NDF im Grundfutter anteilig an der Gesamtration >200 g/ kg TM angenommen. Eine Anpassung für geringe NDF Werte im Grundfutter oder erhöhte NFC Werte wird nicht vorgenommen. Diese Werte werden für Rationen mit mehr als 60% der Futteraufnahme auf der Weide empfohlen. Für typische TMR Fütterung und geringe Weideanteile sind diese Werte konservativ. Hier sollte vor allem die physikalisch effektive (pe) NDF als Indikator genutzt werden. Diese ist auf der Weide nicht zu beurteilen und variiert stark. Die Anwendung *Weiderechner* ist damit **kein Ersatz für die Rationsberechnung** für Betriebe mit überwiegender Stallfütterung. Außerdem müssen **immer die tierbasierten Indikatoren zu Überwachung der Pansengesundheit und Energieversorgung** über die Rationsberechnung hinaus genutzt werden. 
 
 ## Parzelleneinteilung und Messung Futtermenge
-Für Betriebe, die intensive Umtriebsweidesysteme nutzen, bietet der Weiderechner eine Anwendung zur Planung der Parzellengröße. Hierfür ist eine Messung des Weideaufwuchses mit einem Rising Plate Meter oder ähnlichen Hilfsmitteln nötig ("LINK"). Werden andere Hilfsmittel genutzt, müssen die Messungen in die entsprechende Höhe aus dem Rising Plate Meter umgewandelt werden "LINK". Im Weiderechner können die angestrebte Aufwuchshöhe und der Zielweiderest "LINK" angegeben werden. Für fortgeschrittene Nutzer:innen existiert die Möglichkeit eine eigene Formel zur Schätzung der Futtermenge in kg TS/ha aus der Aufwuchshöhenmessung zu einzugeben. Die Standardformel wurde im MuD Projekt Verbesserung des Tierwohls bei der Weidehaltung von Milchkühen erstellt. Typische Formeln sind:
+Für Betriebe, die intensive Umtriebsweidesysteme nutzen, bietet der Weiderechner eine Anwendung zur Planung der Parzellengröße. Hierfür ist eine <a href="https://www.gruenlandzentrum.org/Weideleitfaden/#52_Aufwuchshoehenmessung" target="_blank">  Messung des Weideaufwuchses </a> mit einem Rising Plate Meter oder ähnlichen Hilfsmitteln nötig. Werden andere Hilfsmittel genutzt, müssen die Messungen in die entsprechende Höhe aus dem Rising Plate Meter <a href="https://www.gruenlandzentrum.org/Weideleitfaden/#52_Aufwuchshoehenmessung" target="_blank">  umgewandelt</a> werden. Im Weiderechner können die  <a href="https://www.gruenlandzentrum.org/Weideleitfaden/#54_Die_optimale_Weidereife_das_3-Blatt-Stadium" target="_blank"> angestrebte Aufwuchshöhe </a> und der <a href="https://www.gruenlandzentrum.org/Weideleitfaden/#55_Tipps_zum_Weidemanagement_intensive_Umtriebsweide_nach_neuseelaendischem_Konzept" target="_blank"> Zielweiderest </a> angegeben werden. Für fortgeschrittene Nutzer:innen existiert die Möglichkeit eine eigene Formel zur Schätzung der Futtermenge in kg TM/ha aus der Aufwuchshöhenmessung zu einzugeben. Die Standardformel wurde im MuD Projekt Verbesserung des Tierwohls bei der Weidehaltung von Milchkühen erstellt. Typische Formeln sind:
 
-TS (kg/ha)= 239x-100 &emsp;   (Grünlandzentrum, Deutschland)\
-TS (kg/ha)= 250x     &emsp; &emsp;  (Teagasc,Irland)\
-TS (kg/ha)= 280x+500 &emsp; (DairyNZ, Neuseeland)\
-TS (kg/ha)= 240x-767 &emsp;  (Agroscope, Schweiz)\
++  Grünlandzentrum (Deutschland): TM (kg/ha)= 243x-100 
++  Teagasc (Irland): TM (kg/ha)= 250x 
++  DairyNZ (Neuseeland): TM (kg/ha)= 280x+500
++  Agroscope (Schweiz): TM (kg/ha)= 240x-767
 
 wobei x der komprimierten Aufwuchshöhe aus der Rising Plate Meter Messung in cm entspricht.
 
+### Kontakt
 
-## Quellen und Links
+Bei Fragen und Anregungen bitte eine Email an kilian.obermeyer@uni-goettingen.de
+
+
+### *Förderhinweis
+
+Die Anwendung *Weiderechner* wurde im Projekt “Verbesserung des Tierwohls bei Weidehaltung von Milchkühen” erstellt. Das Projekt ist Teil der Modell- und Demonstrationsvorhaben (MuD) Tierschutz im Bundesprogramm Nutztierhaltung. Die Förderung erfolgt aus Mitteln des Bundesministeriums für Ernährung und Landwirtschaft (BMEL) aufgrund eines Beschlusses des deutschen Bundestages, Projektträger ist die Bundesanstalt für Landwirtschaft und Ernährung (BLE), Förderkennzeichen «2819MDT100».
+
+
+### Quellen und Links
 Jeroch, H., Drochner, W., Rodehutscord, M., Simon, A., Simon, O., Zentek, J. (Eds.), 2020. Ernährung landwirtschaftlicher Nutztiere: Ernährungsphysiologie, Futtermittelkunde, Fütterung, 3., vollständig überarbeitete und erweiterte Auflage. ed, UTB Agrarwissenschaften, Veterinärmedizin. Verlag Eugen Ulmer, Stuttgart.\
 National Research Council (U.S.) (Ed.), 2001. Nutrient requirements of dairy cattle, 7th rev. ed. ed. National Academy Press, Washington, D.C.\
 Gruber, L., Schwarz, F., Erdin, D., Fischer, B., Spiekers, H., Steingass, H., Meyer, U., Chassot, A., Jilg, T., Omermaier, A., Gruggenberg, T., 2004. Vorhersage der Futteraufnahme von Milchkühen - Datenbasis von 10 Forschungs-und Universitätsinstituten Deutschlands. VDLUFA Schriftenr 60, 484–504.\
 Bayrische Landesanstalt für Landwirtschaft, 2021. Gruber Tabelle zur Fütterung der Milchkühe, Zuchtrinder, Schafe, Ziegen. 47. Auflage, Stand 2021. Freising-Weihenstephan\
 LAZ-BW, 2022.Uni-Rat-Rationsberechnungsprogramm für Rinder, Schafe und Ziegen. LAzBW, Aulendorf\
+Dohme-Meier, F., Kaufmann, L.D., Görs, S., Junghans, P., Metges, C.C., van Dorland, H.A., Bruckmaier, R.M., Münger, A., 2014. Comparison of energy expenditure, eating pattern and physical activity of grazing and zero-grazing dairy cows at different time points during lactation. Livestock Science 162, 86–96. https://doi.org/10.1016/j.livsci.2014.01.006
+
 Schori, F., 2020. Mit Herbometer und Pasturemeter die Wuchshöhe von Weiden messen und die Grasmasse schätzen. https://doi.org/10.34776/AFS11-46 <a href="https://www.agrarforschungschweiz.ch/wp-content/uploads/2020/02/046-052_Schori_D_def.pdf" target="_blank">Agrarforschung Schweiz</a>\
 
 Teagasc, 2017. How to measure grass. <a href="https://www.teagasc.ie/media/website/crops/grassland/How-to-measure-grass-right.pdf" target="_blank">Teagasc</a>\

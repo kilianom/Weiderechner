@@ -345,7 +345,7 @@ feedinput<-reactive({
     feedinput<- data.table(
                             FMuser=substr(input$FMuser,1,18),
                             TS=input$TS,
-                            NEL=input$TS,
+                            NEL=input$NEL,
                             XP=input$XP,
                             NDF=input$NDF,
                             ADF=input$ADF,
@@ -423,7 +423,8 @@ feedinput<-reactive({
             NFC=dt_feed_t[,sum(TS*NFC)],
             NDF_GF=dt_feed_t[art=="Grundfutter",sum(TS*NDF)])]
     dt[,c("ADF","NDF","NFC","NDF_GF"):=lapply(.SD,function(x)x/dmi),.SDcols=c("ADF","NDF","NFC","NDF_GF")]
-    dt[,fibre_pr:=ifelse(NDF>=t_NDF & ADF>=t_ADF & NFC<=t_NFC & NDF_GF>=t_GFNDF,"ausreichend","nicht ausreichend")]# mehrstufig evaluieren, GF =pasturebased+high conc---?
+    dt[,fibre_pr:=ifelse(any(c(is.na(NDF),is.na(ADF),is.na(NFC))),"fehlende Eingabe",
+                         ifelse(NDF>=t_NDF & ADF>=t_ADF & NFC<=t_NFC & NDF_GF>=t_GFNDF,"ausreichend","nicht ausreichend"))]# mehrstufig evaluieren, GF =pasturebased+high conc---?
     dt[,e_req:=ecm*3.3+input$lwt^0.75*0.293+0.15*(dmi_p/dmi)*input$lwt^0.75*0.293]
     dt[,e_prov:=dt_feed_t[,sum(TS*NEL)]]
     dt[,fd_p_herd:=dmi_p*input$ncow]
@@ -495,9 +496,9 @@ feedinput<-reactive({
                 setcolorder(calc,c("Szenario","Weideart","ECM","Futteraufnahme","stündliche Futteraufnahme kg TM/ha","benötigte Futteraufnahme Weide","Herdenbedarf Weide kg TM",
                                    "Energiebedarf","Energieangebot","Energiebilanz"))
                 calc<-DT::datatable(calc,filter = "none",rownames = F,escape = F,
-                                    colnames = c("Szenario","Weideart","Milch<br/>kg ECM/Kuh","Futter-<br/>aufnahme kg TM/Kuh","stündliche<br/>Futteraufnahme kg TM/Kuh","Bedarf<br/>Weide <br/>kg TM/Kuh","Herdenbedarf<br/>Weide<br/>kg TM",
+                                    colnames = c("Szenario","Weideart","Milch<br/>kg ECM/Kuh","tägliche<br/>Futteraufnahme kg TM/Kuh","stündliche<br/>Futteraufnahme Weide kg TM/Kuh","Bedarf<br/>Weide <br/>kg TM/Kuh","Herdenbedarf<br/>Weide<br/>kg TM",
                                                   "Energie-<br/>bedarf<br/>Kuh","Energie-<br/>angebot<br/>Kuh","Energie-<br/>bilanz<br/>Kuh",
-                                                 "NDF g/kg TM","ADF g/kg TM","NFC g/kg TM","NDF g/kg TM Grund-<br/>futter","Faser-<br/>versorgung"),
+                                                 "NDF g/kg TM","ADF g/kg TM","NFC g/kg TM","NDF aus  Grund-<br/>futter g/kg TM","Faser-<br/>versorgung"),
                               options = list(dom='t',scrollX=T,scrollCollapse=T,language = list(zeroRecords = "Keine Szenarien vorhanden")))
                 calc<-DT::formatStyle(calc,columns=c("Energiebilanz"),color = DT::styleInterval(cuts=0,c("red","black")),fontWeight = "bold")
                 calc<-DT::formatStyle(calc,columns=c("Faserversorgung"),color = DT::styleEqual("nicht ausreichend","red"),fontWeight = "bold")
