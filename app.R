@@ -23,11 +23,35 @@ GRUBER_DMI<-function(n_lac,br,dim,lwt,ecm,cm,fq_f){
   DMI
 }
 
+###timeout
+timeoutSeconds <- 10*60
+
+inactivity <- sprintf("function idleTimer() {
+var t = setTimeout(logout, %s);
+window.onmousemove = resetTimer; // catches mouse movements
+window.onmousedown = resetTimer; // catches mouse movements
+window.onclick = resetTimer;     // catches mouse clicks
+window.onscroll = resetTimer;    // catches scrolling
+window.onkeypress = resetTimer;  //catches keyboard actions
+
+function logout() {
+Shiny.setInputValue('timeOut', '%ss')
+}
+
+function resetTimer() {
+clearTimeout(t);
+t = setTimeout(logout, %s);  
+}
+}
+idleTimer();", timeoutSeconds*1000, timeoutSeconds, timeoutSeconds*1000)
+
 
 ######################ui#################################################################################
 ui <-fluidPage(theme = theme_a,tags$head(tags$style('
    body {
       font-family: Arial}')),
+               tags$script(inactivity),    #timeout
+               
 
              fluidRow(
                column(width = 1,
@@ -224,6 +248,14 @@ ui <-fluidPage(theme = theme_a,tags$head(tags$style('
 
 ###################### Define server logic ################
 server <- function(input, output,session) {
+  observeEvent(input$timeOut, { 
+    showModal(modalDialog(
+      title = "Timeout",
+      paste("Die Anwendung wurde durch längere Inaktivität beendet."),
+      footer = NULL
+    ))
+    session$close()
+  })
   observe({
   showModal(modalDialog(size = 'l',
     title = "Anleitung",
@@ -237,6 +269,7 @@ server <- function(input, output,session) {
                             includeHTML("www/help_body.html"),
                           footer = tagList(modalButton("Verstanden"))))
   })
+  
   
   ####reactive values####
   rv<-reactiveValues(dt_ra=NULL,dt_input=NULL,dt_calc=NULL,dt_feed=NULL)
